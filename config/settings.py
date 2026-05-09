@@ -14,7 +14,6 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
 DJANGO_APPS = [
-    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -56,15 +55,15 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "common.middleware.CurrentUserMiddleware", 
-    "common.middleware.ExceptionLoggingMiddleware",
+    # "common.middleware.CurrentUserMiddleware", 
+    # "common.middleware.ExceptionLoggingMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
 
-AUTH_USER_MODEL = "core.BaseUser"
+# AUTH_USER_MODEL = "core.BaseUser"
 
 TEMPLATES = [
     {
@@ -125,7 +124,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    "EXCEPTION_HANDLER": "common.exceptions.exception_handler",
+    # "EXCEPTION_HANDLER": "common.exceptions.exception_handler",
 }
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "en-us")

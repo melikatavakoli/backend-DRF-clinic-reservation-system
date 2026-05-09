@@ -47,3 +47,5 @@ django-location-field==2.7.3
 Pillow==12.1.0
 
 drf-standardized-errors==0.15.0
+channels-redis>=4.2.0
+channels>=4.1.0
