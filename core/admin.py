@@ -1,83 +1,189 @@
-from django.contrib import admin
+from import_export import resources
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth import get_user_model
 from common.admin import BaseAdmin, SoftDeleteListFilter
-from .models import BaseUser
+from core.models import BaseUser
+from django.contrib import admin
+
+User = get_user_model()
+
+
+class UserResource(resources.ModelResource):
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "mobile",
+            "first_name",
+            "last_name",
+            "email",
+            "role",
+            "is_verified",
+            "is_staff",
+            "status",
+        )
+        import_id_fields = ["mobile"]
 
 
 @admin.register(BaseUser)
-class BaseUserAdmin(BaseAdmin):
+class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
+
+    model = BaseUser
+    resource_class = UserResource
+
     list_display = (
-        "id",
         "full_name",
         "mobile",
-        "email",
         "role",
         "is_verified",
-        "is_email_verified",
-        "city",
-        "country",
-        "created_at_display",
+        "is_staff",
+        "status",
+        "_is_deleted",
+    )
+
+    list_editable = (
+        "role",
+        "status",
+    )
+
+    search_fields = (
+        "mobile",
+        "first_name",
+        "last_name",
+        "email",
     )
 
     list_filter = (
         SoftDeleteListFilter,
         "role",
+        "status",
         "is_verified",
-        "is_email_verified",
-        "country",
-        "state",
-        "city",
-    )
-
-    search_fields = (
-        "mobile",
-        "email",
-        "first_name",
-        "last_name",
+        "is_staff",
     )
 
     readonly_fields = (
-        "password_updated_at",
-        "_is_deleted",
+        "id",
         "_deleted_at",
+        "last_login",
+        "password_updated_at",
+        "full_name",
+        "age",
     )
 
+    ordering = ("-id",)
+    
     fieldsets = (
-        ("Basic Info", {
-            "fields": (
-                "mobile",
-                "email",
-                "first_name",
-                "last_name",
-                "birth_date",
-                "role",
-                "description",
-            )
-        }),
-        ("Location", {
-            "fields": (
-                "country",
-                "state",
-                "city",
-            )
-        }),
-        ("Verification", {
-            "fields": (
-                "is_verified",
-                "is_email_verified",
-            )
-        }),
-        ("Security", {
-            "fields": (
-                "password",
-                "password_updated_at",
-                "last_login",
-                "last_login_ip",
-            )
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "id",
+                    "mobile",
+                    "password",
+                )
+            },
+        ),
+
+        (
+            "Personal Info",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "full_name",
+                    "email",
+                    "birth_date",
+                    "age",
+                    "role",
+                    "description",
+                )
+            },
+        ),
+
+        (
+            "Location",
+            {
+                "fields": (
+                    "country",
+                    "state",
+                    "city",
+                )
+            },
+        ),
+
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_verified",
+                    "is_email_verified",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                    "status",
+                )
+            },
+        ),
+
+        (
+            "Security",
+            {
+                "fields": (
+                    "last_login",
+                    "last_login_ip",
+                    "password_updated_at",
+                )
+            },
+        ),
+
+        (
+            "Soft Delete",
+            {
+                "fields": (
+                    "_is_deleted",
+                    "_deleted_at",
+                )
+            },
+        ),
+
+        (
+            "Audit",
+            {
+                "fields": (
+                )
+            },
+        ),
     )
+
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "mobile",
+                    "password1",
+                    "password2",
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "role",
+                    "is_verified",
+                    "is_staff",
+                ),
+            },
+        ),
+    )
+
+    actions_row = [
+        "reset_password_action",
+    ]
 
     def delete_queryset(self, request, queryset):
-        queryset.delete()
+        for obj in queryset:
+            obj.delete()
 
     def delete_model(self, request, obj):
         obj.delete()

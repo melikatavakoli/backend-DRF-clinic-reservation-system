@@ -6,9 +6,11 @@ from django.db import models
 from core.types import RoleType, StatusType
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
+from uuid import uuid4
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField("unique id", primary_key=True, unique=True, null=False, default=uuid4, editable=False)
     username = None
     mobile = models.CharField(max_length=11, unique=True)
     email = models.EmailField(blank=True, default="")
@@ -61,7 +63,6 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         )
         
     def save(self, *args, **kwargs):
-        self.full_name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
 
     @property
