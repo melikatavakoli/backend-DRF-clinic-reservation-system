@@ -10,6 +10,7 @@ from django_currentuser.db.models import CurrentUserField
 from auditlog.registry import auditlog
 from django.db.models.base import ModelBase
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 
 class AuditLogModelBase(ModelBase):
@@ -80,7 +81,9 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
 
     class Meta:
         abstract = True
-        indexes = ( models.Index(fields=['id'], name='%(class)s_id_idx') )
+        indexes = [
+            models.Index(fields=['id'], name='id_idx'),
+        ]
 
     @property
     def created_by(self):

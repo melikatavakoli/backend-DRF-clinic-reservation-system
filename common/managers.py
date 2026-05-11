@@ -13,10 +13,10 @@ class SoftDeleteQuerySet(models.QuerySet):
         return super().delete()
 
     def alive(self):
-        return self.filter(is_deleted=False)
+        return self.filter(_is_deleted=False)
 
     def dead(self):
-        return self.filter(is_deleted=True)
+        return self.filter(_is_deleted=True)
 
 
 class SoftDeleteManager(models.Manager):
@@ -27,9 +27,9 @@ class SoftDeleteManager(models.Manager):
 
     def get_queryset(self) -> SoftDeleteQuerySet:
         if self.alive_only is True:
-            return SoftDeleteQuerySet(self.model).filter(is_deleted=False)
+            return SoftDeleteQuerySet(self.model).filter(_is_deleted=False)
         elif self.alive_only is False:
-            return SoftDeleteQuerySet(self.model).filter(is_deleted=True)
+            return SoftDeleteQuerySet(self.model).filter(_is_deleted=True)
         return SoftDeleteQuerySet(self.model)
 
     def hard_delete(self):
