@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from common.paginations import CustomLimitOffsetPagination
+from core.models import BaseUser
 from core.serializers import (
     ChangePasswordSerializer,
     LoginOtpSerializer,
@@ -146,17 +147,17 @@ class UserListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomLimitOffsetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_fields = ["role", "status"]
-    ordering_fields = ["created_at", "full_name"]
+    filterset_fields = ["status"]
+    ordering_fields = ["_created_at", "full_name"]
     search_fields = ["mobile", "first_name", "last_name"]
 
     def get_queryset(self):
         user = self.request.user
-        
+
         if user.role == RoleType.ADMIN:
             return User.all_objects.all()
         elif user.role == RoleType.STAFF:
-            return User.objects.filter(role=RoleType.CUSTOMER)
+            return User.objects.filter(role=RoleType.PATIENT)
         else:
             return User.objects.filter(id=user.id)
 
@@ -164,13 +165,13 @@ class UserListView(ListAPIView):
 class UserListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserListSerializer
-    queryset = User.objects.all()
+    queryset = BaseUser.objects.all()
     pagination_class = CustomLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ("role",)
+    filterset_fields = ("mobile",)
     search_fields = ("first_name", "last_name", "mobile")
-    ordering = ("-created_at",)
-    ordering_fields = ("first_name", "created_at")
+    ordering = ("_created_at",)
+    ordering_fields = ("first_name", "_created_at")
 
     @extend_schema(
         responses=UserListSerializer(many=True),

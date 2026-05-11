@@ -1,12 +1,14 @@
 from address.models import City, Country, State
 from common.format import calculate_age, common_datetime_str
-from common.managers import UserManager
+from common.managers import SoftDeleteManager, UserManager
 from common.models import GenericModel
 from django.db import models
-from core.types import RoleType
+from core.types import RoleType, StatusType
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.utils import timezone
 
 
-class BaseUser(GenericModel):
+class BaseUser(AbstractBaseUser, PermissionsMixin):
     username = None
     mobile = models.CharField(max_length=11, unique=True)
     email = models.EmailField(blank=True, default="")
@@ -20,19 +22,47 @@ class BaseUser(GenericModel):
     is_verified = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
+    is_staff = models.BooleanField(default=False)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=StatusType.choices, default=StatusType.ACTIVE)
+    _is_deleted = models.BooleanField(default=False)
+    _deleted_at = models.DateTimeField(null=True, blank=True)
+    password_updated_at = models.DateTimeField(null=True, blank=True,auto_now_add=True,)
+    objects = UserManager(alive_only=True)
+    all_objects = UserManager(alive_only=None)
+    deleted_objects = UserManager(alive_only=False)
 
+    def delete(self, using=None, keep_parents=False):
+        self._is_deleted = True
+        self._deleted_at = timezone.now()
+        self.save(using=using)
+
+    def hard_delete(self, using=None, keep_parents=False):
+        super().delete(using=using, keep_parents=keep_parents)
+
+    def restore(self):
+        self._is_deleted = False
+        self._deleted_at = None
+        self.save()
+
+    USERNAME_FIELD = 'mobile'
+    REQUIRED_FIELDS = ["first_name", "last_name"]
+    
     class Meta:
         verbose_name = "base_user"
         verbose_name_plural = "base_users"
         db_table = "base_user"
-
-        def __str__(self):
-            return self.full_name or self.mobile
-    
-    USERNAME_FIELD = "mobile"
-    REQUIRED_FIELDS = []
-
-    objects = UserManager(alive_only=True)
+        indexes = (
+            models.Index(fields=['id'], name='user_id_idx'),
+            models.Index(fields=['mobile'], name='user_mobile_idx'),
+            models.Index(fields=['first_name'], name='user_first_name_idx'),
+            models.Index(fields=['last_name'], name='user_last_name_idx'),
+        )
+        
+    def save(self, *args, **kwargs):
+        self.full_name = f"{self.first_name} {self.last_name}".strip()
+        super().save(*args, **kwargs)
 
     @property
     def full_name(self):

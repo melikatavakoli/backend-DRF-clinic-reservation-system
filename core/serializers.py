@@ -7,8 +7,12 @@ from django.utils import timezone
 from django_redis import get_redis_connection
 from rest_framework import serializers
 from common.serializers import GenericModelSerializer
+from core.models import BaseUser
 from core.tasks.otp import send_registry_sms, send_verification_sms
 from core.types import RoleType, StatusType
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.validators import RegexValidator
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -18,7 +22,7 @@ class UserListSerializer(GenericModelSerializer):
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
-        model = User
+        model = BaseUser
         fields = GenericModelSerializer.Meta.fields + (
             "mobile",
             "full_name",
@@ -29,9 +33,9 @@ class UserListSerializer(GenericModelSerializer):
 
 class RegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=11)
-    code = serializers.CharField(max_length=6)
-    password = serializers.CharField(write_only=True)
-    re_password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    re_password = serializers.CharField(write_only=True,  required=False, allow_blank=True)
+    code = serializers.CharField(max_length=6, required=False, allow_blank=True)
     first_name = serializers.CharField(max_length=100, required=False)
     last_name = serializers.CharField(max_length=100, required=False)
 
@@ -40,29 +44,48 @@ class RegisterSerializer(serializers.Serializer):
         code = data.get("code")
         password = data.get("password")
         re_password = data.get("re_password")
-        if not (mobile.isdigit() and len(mobile) == 11):
-            raise serializers.ValidationError("فرمت شماره موبایل نادرست است.")
+        
+        mobile_validator = RegexValidator(
+            regex=r'^09\d{9}$',
+            message="فرمت شماره موبایل نادرست است."
+        )
+
+        try:
+            mobile_validator(mobile)
+        except DjangoValidationError:
+            raise serializers.ValidationError({
+                "mobile": "فرمت شماره موبایل نادرست است."
+            })
+            
         if password != re_password:
             raise serializers.ValidationError("رمز عبور مطابقت ندارد.")
         if User.objects.filter(mobile=mobile).exists():
-            raise serializers.ValidationError("این شماره قبلاً ثبت شده است.")
-        redis_conn = get_redis_connection("default")
-        stored_code = redis_conn.get(f"verification_code:{mobile}")
-        if not stored_code:
-            raise serializers.ValidationError("کد تأیید یافت نشد.")
-        if stored_code.decode("utf-8") != code:
-            raise serializers.ValidationError("کد تأیید اشتباه است.")
+            raise serializers.ValidationError("این موبایل قبلاً ثبت شده است.")
+        
+        if code:
+            redis_conn = get_redis_connection("default")
+            stored_code = redis_conn.get(
+                f"verification_code:{mobile}"
+            )
+            if not stored_code:
+                raise serializers.ValidationError({
+                    "code": "کد تأیید یافت نشد."
+                })
+            if stored_code.decode("utf-8") != code:
+                raise serializers.ValidationError({
+                    "code": "کد تأیید اشتباه است."
+                })
         return data
 
     @transaction.atomic
     def save(self):
         data = self.validated_data
-        user = User.objects.create_user(
+        user = BaseUser.objects.create_user(
             mobile=data["mobile"],
             password=data["password"],
             first_name=data.get("first_name", ""),
             last_name=data.get("last_name", ""),
-            role=RoleType.CUSTOMER,
+            role=RoleType.PATIENT,
             is_verified=True,
             status=StatusType.ACTIVE,
         )
@@ -142,9 +165,9 @@ class LoginSerializer(serializers.Serializer):
         password = data.get("password")
         
         try:
-            user = User.objects.get(mobile=mobile)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("کاربری با این شماره یافت نشد.")
+            user = BaseUser.objects.get(email=mobile)
+        except BaseUser.DoesNotExist:
+            raise serializers.ValidationError("کاربری با این موبایل یافت نشد.")
         if user.status != StatusType.ACTIVE:
             raise serializers.ValidationError("حساب کاربری فعال نیست.")
         if not user.check_password(password):
@@ -211,7 +234,7 @@ class UserListSerializer(GenericModelSerializer):
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
-        model = User
+        model = BaseUser
         fields = GenericModelSerializer.Meta.fields + (
             "mobile",
             "full_name",
