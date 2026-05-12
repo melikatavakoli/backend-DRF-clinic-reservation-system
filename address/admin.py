@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
-from .models import Branch, City, Country, State
+from .models import City, Country, State
 from common.admin import BaseAdmin
 
 
@@ -27,13 +27,4 @@ class CityAdmin(BaseAdmin):
     list_filter = ["state", "state__country"]
     search_fields = ["label", "state__label", "state__country__label"]
     ordering = ["state__country__label", "state__label", "label"]
-    readonly_fields = ["id", "created_at", "updated_at", "_is_deleted", "_deleted_at"]
-
-
-@admin.register(Branch)
-class BranchAdmin(BaseAdmin):
-    list_display = ["label", "city", "mobile", "created_at"]
-    list_filter = ["city", "city__state"]
-    search_fields = ["title", "address", "mobile", "city__label"]
-    ordering = ["city__state__country__label", "city__state__label", "city__label", "label"]
     readonly_fields = ["id", "created_at", "updated_at", "_is_deleted", "_deleted_at"]
