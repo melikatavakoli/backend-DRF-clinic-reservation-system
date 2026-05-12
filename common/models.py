@@ -69,7 +69,7 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
     def delete(self, using=None, keep_parents=False):
         self._is_deleted = True
         self._deleted_at = timezone.now()
-        self.save(using=using)
+        self.save(update_fields=["_is_deleted", "_deleted_at"])
 
     def hard_delete(self, using=None, keep_parents=False):
         super().delete(using=using, keep_parents=keep_parents)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from common.admin import BaseAdmin
+from common.admin import BaseAdmin, SoftDeleteListFilter
 from .models import BaseUser
 
 
@@ -19,13 +19,13 @@ class BaseUserAdmin(BaseAdmin):
     )
 
     list_filter = (
+        SoftDeleteListFilter,
         "role",
         "is_verified",
         "is_email_verified",
         "country",
         "state",
         "city",
-        "_created_at",
     )
 
     search_fields = (
@@ -36,9 +36,9 @@ class BaseUserAdmin(BaseAdmin):
     )
 
     readonly_fields = (
-        "_created_at",
-        "_updated_at",
         "password_updated_at",
+        "_is_deleted",
+        "_deleted_at",
     )
 
     fieldsets = (
@@ -74,12 +74,10 @@ class BaseUserAdmin(BaseAdmin):
                 "last_login_ip",
             )
         }),
-        ("Timestamps", {
-            "fields": (
-                "created_at",
-                "updated_at",
-            )
-        }),
     )
 
-    ordering = ("_created_at",)
+    def delete_queryset(self, request, queryset):
+        queryset.delete()
+
+    def delete_model(self, request, obj):
+        obj.delete()
