@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from common.models import GenericModel
+from core.models import BaseUser
 from user.type import BloodTypeChoices, DoctorType, EducationStatus, GenderChoices, MaritalStatus
 from django.db import models
 
@@ -8,7 +9,7 @@ User = get_user_model()
 
 
 class Doctor(GenericModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="doctor_staff",null=True,blank=True)
+    base_user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name="doctor_staff",null=True,blank=True)
     title = models.CharField(max_length=400, null=True, blank=True)
     type = models.CharField(choices=DoctorType.choices, max_length=100, null=True, blank=True,)
     specialty = models.CharField(max_length=255, null=True, blank=True)
@@ -24,31 +25,13 @@ class Doctor(GenericModel):
         verbose_name_plural = "doctors"
         ordering = ('-_updated_at',)
         db_table = 'doctors'
-            
-    def save(self, *args, **kwargs):
-        previous_state = None
-        if self.pk:
-            previous_state = (
-                User.all_objects
-                .filter(pk=self.pk)
-                .values("role_id", "_is_deleted")
-                .first()
-            )
-        super().save(*args, **kwargs)
-        if previous_state is None:
-            self.sync_role_profiles()
-            return
-        role_changed = previous_state.get("role_id") != self.role_id
-        deleted_state_changed = previous_state.get("_is_deleted") != self._is_deleted
-        if role_changed or deleted_state_changed:
-            self.sync_role_profiles()
 
     def __str__(self) -> str:
-        return self.core_user.full_name or None            
+        return self.user.full_name or None            
 
 
 class Patient(GenericModel):
-    user = models.OneToOne(User, on_delete=models.CASCADE, related_name='patient', null=True, blank=True)
+    base_user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='patient', null=True, blank=True)
     description = models.TextField(max_length=300, null=True, blank=True,)
     is_active=models.BooleanField(null=True, blank=True,)
     gender = models.CharField(choices=GenderChoices.choices, max_length=100, null=True, blank=True,)
