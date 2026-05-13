@@ -43,7 +43,8 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "address",
-    "core"
+    "core",
+    "users"
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -57,8 +58,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "common.middleware.CurrentUserMiddleware", 
-    # "common.middleware.ExceptionLoggingMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
 ]

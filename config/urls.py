@@ -16,4 +16,5 @@ urlpatterns = [
     path('swagger/output.json', DownloadSchemaView.as_view(authentication_classes=[], permission_classes=[]),name='schema-json',),
     path('api/v1/address/', include('address.urls')),
     path('api/v1/core/', include('core.urls')),
+    path('api/v1/users/', include('users.urls')),
 ]

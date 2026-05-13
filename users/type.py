@@ -1,23 +1,23 @@
 from django.db import models
 
 class GenderChoices(models.TextChoices):
-    male = "male", "مرد"
-    female = "female", "زن"
+    MALE = "M", "Male"
+    FEMALE = "F", "Female"
 
 class MaritalStatus(models.TextChoices):
-    single = "single", "مجرد"
-    married = "married", "متاهل"
+    SINGLE = "S", "Single"
+    MARRIED = "M", "Married"
 
 class EducationStatus(models.TextChoices):
-    diploma = "diploma", "دیپلم"
-    associate = "associate", "کاردانی"
-    bachelor = "bachelor", "کارشناسی"
-    master = "master", "کارشناسی ارشد"
-    phd = "phd", "دکتری"
-    
+    DIPLOMA = "D", "Diploma"
+    ASSOCIATE = "AS", "Associate Degree"
+    BACHELOR = "B", "Bachelor's Degree"
+    MASTER = "M", "Master's Degree"
+    PHD = "PHD", "PhD"
+
 class DoctorType(models.TextChoices):
-    VISIT = "visit", "ویزیت"
-    SERVICES = "services", "خدمات"
+    VISIT = "V", "Consultation"
+    SERVICES = "S", "Medical Services"
     
 class BloodTypeChoices(models.TextChoices):
     A_POSITIVE = "A+", "A Positive"

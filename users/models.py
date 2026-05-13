@@ -2,7 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from common.models import GenericModel
 from core.models import BaseUser
-from user.type import BloodTypeChoices, DoctorType, EducationStatus, GenderChoices, MaritalStatus
+from users.type import BloodTypeChoices, DoctorType, EducationStatus, GenderChoices, MaritalStatus
 from django.db import models
 
 User = get_user_model()
