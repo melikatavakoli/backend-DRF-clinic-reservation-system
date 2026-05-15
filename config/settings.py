@@ -4,12 +4,18 @@ from pathlib import Path
 
 from celery.schedules import crontab
 from dotenv import load_dotenv
-
-load_dotenv()
+from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+env = {**dotenv_values(BASE_DIR / ".env"), **dotenv_values(BASE_DIR / ".env.local")}
+for key, value in env.items():
+    if value is not None:
+        os.environ[key] = value
+
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or 'unsafe-default-key-for-dev-only'
+
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
@@ -144,11 +150,13 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Clinic-Reservation API Documentation",
     "DESCRIPTION": "API documentation for Reservation-website",
     "VERSION": "1.0.0",
+    "TAGS": None,
     "SERVE_INCLUDE_SCHEMA": True,
     "SWAGGER_UI_SETTINGS": {
         "deepLinking": True,
     },
     "COMPONENT_SPLIT_REQUEST": True,
+    'SCHEMA_PATH_PREFIX': '/api/v1',
     "ENUM_NAME_OVERRIDES": {},
     "TAG_SORTING": "alpha",
     "SWAGGER_UI_DIST": "SIDECAR",

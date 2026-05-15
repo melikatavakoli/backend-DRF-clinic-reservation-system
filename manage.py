@@ -4,7 +4,18 @@
 import os
 import sys
 
+from pathlib import Path
+from dotenv import dotenv_values
 
+BASE_DIR = Path(__file__).resolve().parent
+
+# Load both .env and .env.local before Django starts
+env = {**dotenv_values(BASE_DIR / ".env"), **dotenv_values(BASE_DIR / ".env.local")}
+for key, value in env.items():
+    if value is not None:
+        os.environ[key] = value
+        
+        
 def main():
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")

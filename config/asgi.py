@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
+from dotenv import dotenv_values
 
-from django.core.asgi import get_asgi_application
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-application = get_asgi_application()
+env = {**dotenv_values(BASE_DIR / ".env"), **dotenv_values(BASE_DIR / ".env.local")}
+for key, value in env.items():
+    if value is not None:
+        os.environ[key] = value
