@@ -11,7 +11,6 @@ from users.serializers import (
     PatientSerializer,
     UserAvatarSerializer,
 )
-from rest_framework import status
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 

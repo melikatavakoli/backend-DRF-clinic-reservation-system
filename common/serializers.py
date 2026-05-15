@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db import models
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 

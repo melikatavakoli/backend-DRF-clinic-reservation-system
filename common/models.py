@@ -1,15 +1,13 @@
 from uuid import uuid4
 from functools import cached_property
-from django.conf import settings
 from django.db import models
-from django.db.models.deletion import ProtectedError
 from django.utils import timezone
 from common.managers import SoftDeleteManager
 from .format import common_datetime_str
 from django_currentuser.db.models import CurrentUserField
 from auditlog.registry import auditlog
 from django.db.models.base import ModelBase
-from django.db import models, transaction
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
 
@@ -140,6 +138,6 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
             try:
                 if getattr(self, field.related_name).all().exists():
                     return False
-            except Exception as e:
+            except Exception:
                 pass
         return True

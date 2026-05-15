@@ -1,9 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-
 from celery.schedules import crontab
-from dotenv import load_dotenv
 from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -18,7 +16,8 @@ for key, value in env.items():
 
 
 SECRET_KEY = (
-    os.getenv("DJANGO_SECRET_KEY") or "unsafe-default-key-for-dev-only"
+    os.getenv("DJANGO_SECRET_KEY")
+    or "unsafe-default-key-for-dev-only"
 )
 
 
@@ -125,7 +124,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny"
+    ],
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend"
     ],
@@ -183,8 +184,12 @@ JWT_BLACKLIST_AFTER_ROTATION = (
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=JWT_ACCESS_TOKEN_LIFETIME),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=JWT_REFRESH_TOKEN_LIFETIME),
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=JWT_ACCESS_TOKEN_LIFETIME
+    ),
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=JWT_REFRESH_TOKEN_LIFETIME
+    ),
     "ROTATE_REFRESH_TOKENS": JWT_ROTATE_REFRESH_TOKENS,
     "BLACKLIST_AFTER_ROTATION": JWT_BLACKLIST_AFTER_ROTATION,
     "ALGORITHM": JWT_ALGORITHM,
@@ -200,7 +205,9 @@ REDIS_PORT = os.getenv("REDIS_PORT", "6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
 
 if REDIS_PASSWORD:
-    REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+    REDIS_URL = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+    )
 else:
     REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 
@@ -248,7 +255,9 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage"
+    },
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },

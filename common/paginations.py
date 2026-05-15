@@ -22,7 +22,7 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         self.request = request
         if self.count == 0 or self.offset >= self.count:
             return []
-        return list(queryset[self.offset : self.offset + self.limit])
+        return list(queryset[self.offset:self.offset+self.limit])
 
     def get_offset(self, request):
         try:

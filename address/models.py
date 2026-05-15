@@ -3,7 +3,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from common.models import SoftDeleteManager
-from location_field.models.plain import PlainLocationField as LocationField
 
 
 class Country(models.Model):

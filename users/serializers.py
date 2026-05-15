@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from users.models import Doctor, Patient
+from .models import Doctor, Patient
 from common.serializers import GenericModelSerializer
-from users.models import Doctor
-from users.services import pick_serializer_fields
+from .services import pick_serializer_fields
 
 User = get_user_model()
 

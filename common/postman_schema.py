@@ -1,5 +1,4 @@
 from drf_spectacular.views import SpectacularAPIView
-from django.http import HttpResponse
 
 
 class DownloadSchemaView(SpectacularAPIView):
