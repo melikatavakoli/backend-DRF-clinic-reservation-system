@@ -16,7 +16,11 @@ class DoctorAdmin(admin.ModelAdmin):
         "is_present",
     )
     list_filter = ("is_active", "is_present", "type", "specialty")
-    search_fields = ("medical_code", "base_user__full_name", "base_user__mobile")
+    search_fields = (
+        "medical_code",
+        "base_user__full_name",
+        "base_user__mobile",
+    )
     ordering = ("_created_at",)
 
     autocomplete_fields = ("base_user",)
@@ -34,7 +38,11 @@ class PatientAdmin(admin.ModelAdmin):
         "is_active",
     )
     list_filter = ("gender", "blood_type", "marital_status", "is_active")
-    search_fields = ("base_user__full_name", "base_user__mobile", "insurance_number")
+    search_fields = (
+        "base_user__full_name",
+        "base_user__mobile",
+        "insurance_number",
+    )
     ordering = ("_created_at",)
 
     autocomplete_fields = ("base_user",)

@@ -9,16 +9,30 @@ class CountryAdmin(BaseAdmin):
     list_display = ["label", "created_at", "updated_at"]
     search_fields = ["label"]
     ordering = ["label"]
-    readonly_fields = ["id", "created_at", "updated_at", "_is_deleted", "_deleted_at"]
+    readonly_fields = [
+        "id",
+        "created_at",
+        "updated_at",
+        "_is_deleted",
+        "_deleted_at",
+    ]
 
 
 @admin.register(State)
 class StateAdmin(BaseAdmin):
     list_display = ["label", "country", "created_at", "updated_at"]
-    list_filter = ["country",]
+    list_filter = [
+        "country",
+    ]
     search_fields = ["label", "country__label"]
     ordering = ["country__label", "label"]
-    readonly_fields = ["id", "created_at", "updated_at", "_is_deleted", "_deleted_at"]
+    readonly_fields = [
+        "id",
+        "created_at",
+        "updated_at",
+        "_is_deleted",
+        "_deleted_at",
+    ]
 
 
 @admin.register(City)
@@ -27,4 +41,10 @@ class CityAdmin(BaseAdmin):
     list_filter = ["state", "state__country"]
     search_fields = ["label", "state__label", "state__country__label"]
     ordering = ["state__country__label", "state__label", "label"]
-    readonly_fields = ["id", "created_at", "updated_at", "_is_deleted", "_deleted_at"]
+    readonly_fields = [
+        "id",
+        "created_at",
+        "updated_at",
+        "_is_deleted",
+        "_deleted_at",
+    ]

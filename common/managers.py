@@ -20,7 +20,7 @@ class SoftDeleteQuerySet(models.QuerySet):
 
 class SoftDeleteManager(models.Manager):
     def __init__(self, *args, **kwargs):
-        self.alive_only = kwargs.pop('alive_only', None)
+        self.alive_only = kwargs.pop("alive_only", None)
         super().__init__(*args, **kwargs)
 
     def get_queryset(self):

@@ -7,10 +7,22 @@ from location_field.models.plain import PlainLocationField as LocationField
 
 
 class Country(models.Model):
-    id = models.UUIDField(verbose_name="unique id", primary_key=True, unique=True, default=uuid4, editable=False)
-    label = models.CharField("label", max_length=100, null=True, blank=True, unique=True)
-    created_at = models.DateTimeField(verbose_name="created at", default=timezone.now, null=False)
-    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
+    id = models.UUIDField(
+        verbose_name="unique id",
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        editable=False,
+    )
+    label = models.CharField(
+        "label", max_length=100, null=True, blank=True, unique=True
+    )
+    created_at = models.DateTimeField(
+        verbose_name="created at", default=timezone.now, null=False
+    )
+    updated_at = models.DateTimeField(
+        verbose_name="updated at", auto_now=True
+    )
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -33,19 +45,38 @@ class Country(models.Model):
     class Meta:
         verbose_name = "country"
         verbose_name_plural = "countries"
-        db_table = 'country'
-        ordering = ('-updated_at',)
+        db_table = "country"
+        ordering = ("-updated_at",)
 
     def __str__(self) -> str:
         return self.label or "none"
 
 
 class State(models.Model):
-    id = models.UUIDField(verbose_name="unique id", primary_key=True, unique=True, default=uuid4, editable=False)
-    country = models.ForeignKey(Country, related_name="states_country", verbose_name=_("country"), on_delete=models.CASCADE, null=True, blank=True)
-    label = models.CharField("label", max_length=210, null=True, blank=True, unique=True)
-    created_at = models.DateTimeField(verbose_name="created at", default=timezone.now, null=False)
-    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
+    id = models.UUIDField(
+        verbose_name="unique id",
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        editable=False,
+    )
+    country = models.ForeignKey(
+        Country,
+        related_name="states_country",
+        verbose_name=_("country"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    label = models.CharField(
+        "label", max_length=210, null=True, blank=True, unique=True
+    )
+    created_at = models.DateTimeField(
+        verbose_name="created at", default=timezone.now, null=False
+    )
+    updated_at = models.DateTimeField(
+        verbose_name="updated at", auto_now=True
+    )
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -68,19 +99,36 @@ class State(models.Model):
     class Meta:
         verbose_name = _("state")
         verbose_name_plural = _("states")
-        db_table = 'state'
-        ordering = ('-updated_at',)
+        db_table = "state"
+        ordering = ("-updated_at",)
 
     def __str__(self) -> str:
         return self.label or "none"
 
 
 class City(models.Model):
-    id = models.UUIDField(verbose_name="unique id", primary_key=True, unique=True, default=uuid4, editable=False)
-    state = models.ForeignKey(State, related_name="city_states", verbose_name=_("state"), on_delete=models.CASCADE, null=True, blank=True)
+    id = models.UUIDField(
+        verbose_name="unique id",
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        editable=False,
+    )
+    state = models.ForeignKey(
+        State,
+        related_name="city_states",
+        verbose_name=_("state"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     label = models.CharField("label", max_length=310, null=True, blank=True)
-    created_at = models.DateTimeField(verbose_name="created at", default=timezone.now, null=False)
-    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
+    created_at = models.DateTimeField(
+        verbose_name="created at", default=timezone.now, null=False
+    )
+    updated_at = models.DateTimeField(
+        verbose_name="updated at", auto_now=True
+    )
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -103,8 +151,8 @@ class City(models.Model):
     class Meta:
         verbose_name = _("city")
         verbose_name_plural = _("cities")
-        ordering = ('-updated_at',)
-        db_table = 'city'
+        ordering = ("-updated_at",)
+        db_table = "city"
 
     def __str__(self) -> str:
         return self.label or "none"

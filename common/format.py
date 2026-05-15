@@ -13,7 +13,7 @@ def common_user_str(user):
 def _localize_datetime(dt):
     if not dt:
         return None
-    
+
     if not timezone.is_aware(dt):
         dt = timezone.make_aware(dt, timezone.get_current_timezone())
     return timezone.localtime(dt)
@@ -49,4 +49,8 @@ def calculate_age(birth_date):
     if not birth_date:
         return None
     today = timezone.localdate()
-    return today.year - birth_date.year - int((today.month, today.day) < (birth_date.month, birth_date.day))
+    return (
+        today.year
+        - birth_date.year
+        - int((today.month, today.day) < (birth_date.month, birth_date.day))
+    )

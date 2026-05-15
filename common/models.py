@@ -20,12 +20,31 @@ class AuditLogModelBase(ModelBase):
             auditlog.register(new_class)
         return new_class
 
+
 class GenericModel(models.Model, metaclass=AuditLogModelBase):
-    id = models.UUIDField(verbose_name=_("unique id"),primary_key=True, unique=True,null=False,default=uuid4,editable=False)
-    _created_by = CurrentUserField(related_name="%(app_label)s_%(class)s_created_by",verbose_name=_("created by"),)
-    _updated_by = CurrentUserField(related_name="%(app_label)s_%(class)s_updated_by",verbose_name=_("updated by"), on_update=True)
-    _created_at = models.DateTimeField(verbose_name=_('created at'), default=timezone.now)
-    _updated_at = models.DateTimeField( verbose_name=_('updated at'), auto_now=True)
+    id = models.UUIDField(
+        verbose_name=_("unique id"),
+        primary_key=True,
+        unique=True,
+        null=False,
+        default=uuid4,
+        editable=False,
+    )
+    _created_by = CurrentUserField(
+        related_name="%(app_label)s_%(class)s_created_by",
+        verbose_name=_("created by"),
+    )
+    _updated_by = CurrentUserField(
+        related_name="%(app_label)s_%(class)s_updated_by",
+        verbose_name=_("updated by"),
+        on_update=True,
+    )
+    _created_at = models.DateTimeField(
+        verbose_name=_("created at"), default=timezone.now
+    )
+    _updated_at = models.DateTimeField(
+        verbose_name=_("updated at"), auto_now=True
+    )
     _is_deleted = models.BooleanField(default=False)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -46,7 +65,9 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
                         setattr(instance, key, value)
                     instance.save(update_fields=list(defaults.keys()))
                 return instance, False, restored
-            instance, created = cls.objects.get_or_create(defaults=defaults, **kwargs)
+            instance, created = cls.objects.get_or_create(
+                defaults=defaults, **kwargs
+            )
             return instance, created, False
 
     @classmethod
@@ -63,7 +84,9 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
                         setattr(instance, key, value)
                     instance.save(update_fields=list(defaults.keys()))
                 return instance, False, restored
-            instance, created = cls.objects.update_or_create(defaults=defaults, **kwargs)
+            instance, created = cls.objects.update_or_create(
+                defaults=defaults, **kwargs
+            )
             return instance, created, False
 
     def delete(self, using=None, keep_parents=False):
@@ -82,19 +105,25 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
     class Meta:
         abstract = True
         indexes = [
-            models.Index(fields=['id'], name='id_idx'),
+            models.Index(fields=["id"], name="id_idx"),
         ]
 
     @property
     def created_by(self):
         if self._created_by:
-            return f"{self._created_by.first_name} {self._created_by.last_name}".strip() or self._created_by.mobile
+            return (
+                f"{self._created_by.first_name} {self._created_by.last_name}".strip()
+                or self._created_by.mobile
+            )
         return None
 
     @property
     def updated_by(self):
         if self._updated_by:
-            return f"{self._updated_by.first_name} {self._updated_by.last_name}".strip() or self._updated_by.mobile
+            return (
+                f"{self._updated_by.first_name} {self._updated_by.last_name}".strip()
+                or self._updated_by.mobile
+            )
         return None
 
     @property

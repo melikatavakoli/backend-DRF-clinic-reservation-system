@@ -5,10 +5,8 @@ from common.serializers import GenericModelSerializer
 class CountrySerializer(GenericModelSerializer):
     class Meta:
         model = Country
-        fields = GenericModelSerializer.Meta.fields + (
-            "label", 
-        )
-        
+        fields = GenericModelSerializer.Meta.fields + ("label",)
+
 
 class StateSerializer(GenericModelSerializer):
     country_detail = CountrySerializer(source="country", read_only=True)

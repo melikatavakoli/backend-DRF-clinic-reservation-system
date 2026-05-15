@@ -8,13 +8,18 @@ from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env = {**dotenv_values(BASE_DIR / ".env"), **dotenv_values(BASE_DIR / ".env.local")}
+env = {
+    **dotenv_values(BASE_DIR / ".env"),
+    **dotenv_values(BASE_DIR / ".env.local"),
+}
 for key, value in env.items():
     if value is not None:
         os.environ[key] = value
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or 'unsafe-default-key-for-dev-only'
+SECRET_KEY = (
+    os.getenv("DJANGO_SECRET_KEY") or "unsafe-default-key-for-dev-only"
+)
 
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
@@ -48,11 +53,7 @@ THIRD_PARTY_APPS = [
     "django_extensions",
 ]
 
-LOCAL_APPS = [
-    "address",
-    "core",
-    "users"
-]
+LOCAL_APPS = ["address", "core", "users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -125,7 +126,9 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend"
+    ],
     "DATETIME_FORMAT": "%Y.%m.%d %H:%M",
     "DATE_FORMAT": "%Y.%m.%d",
     "DEFAULT_THROTTLE_CLASSES": [
@@ -157,7 +160,7 @@ SPECTACULAR_SETTINGS = {
         "deepLinking": True,
     },
     "COMPONENT_SPLIT_REQUEST": True,
-    'SCHEMA_PATH_PREFIX': '/api/v1',
+    "SCHEMA_PATH_PREFIX": "/api/v1",
     "ENUM_NAME_OVERRIDES": {},
     "TAG_SORTING": "alpha",
     "SWAGGER_UI_DIST": "SIDECAR",
@@ -165,9 +168,15 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
 }
 
-JWT_ACCESS_TOKEN_LIFETIME = int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", 5))
-JWT_REFRESH_TOKEN_LIFETIME = int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", 7))
-JWT_ROTATE_REFRESH_TOKENS = os.getenv("JWT_ROTATE_REFRESH_TOKENS", "True") == "True"
+JWT_ACCESS_TOKEN_LIFETIME = int(
+    os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", 5)
+)
+JWT_REFRESH_TOKEN_LIFETIME = int(
+    os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", 7)
+)
+JWT_ROTATE_REFRESH_TOKENS = (
+    os.getenv("JWT_ROTATE_REFRESH_TOKENS", "True") == "True"
+)
 JWT_BLACKLIST_AFTER_ROTATION = (
     os.getenv("JWT_BLACKLIST_AFTER_ROTATION", "True") == "True"
 )
@@ -217,9 +226,12 @@ CHANNEL_LAYERS = {
 }
 
 CELERY_BROKER_URL = os.getenv(
-    "CELERY_BROKER_URL", f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1"
+    "CELERY_BROKER_URL",
+    f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1",
 )
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
+CELERY_RESULT_BACKEND = os.getenv(
+    "CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1"
+)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"

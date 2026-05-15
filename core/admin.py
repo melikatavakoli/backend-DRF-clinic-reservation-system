@@ -72,7 +72,7 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
     )
 
     ordering = ("-id",)
-    
+
     fieldsets = (
         (
             None,
@@ -84,7 +84,6 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Personal Info",
             {
@@ -100,7 +99,6 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Location",
             {
@@ -111,7 +109,6 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Permissions",
             {
@@ -126,7 +123,6 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Security",
             {
@@ -137,7 +133,6 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Soft Delete",
             {
@@ -147,13 +142,9 @@ class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
                 )
             },
         ),
-
         (
             "Audit",
-            {
-                "fields": (
-                )
-            },
+            {"fields": ()},
         ),
     )
 

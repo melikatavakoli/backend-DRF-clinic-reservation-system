@@ -15,17 +15,27 @@ from rest_framework import status
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 
-class DoctorViewSet(mixins.CreateModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
+class DoctorViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Doctor.objects.select_related("base_user").all()
     serializer_class = DoctorSerializer
     permission_classes = [AllowAny]
-    
-    
-class PatientViewSet(mixins.CreateModelMixin,mixins.UpdateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
+
+
+class PatientViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Patient.objects.select_related("base_user").all()
     serializer_class = PatientSerializer
     permission_classes = [AllowAny]
-        
+
 
 class UserAvatarUpdateView(generics.UpdateAPIView):
     serializer_class = UserAvatarSerializer
@@ -39,7 +49,7 @@ class UserAvatarUpdateView(generics.UpdateAPIView):
         serializer = self.get_serializer(
             request.user,
             data={"avatar": request.data.get("avatar")},
-            partial=True
+            partial=True,
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -50,8 +60,8 @@ class DoctorReadOnlyViewView(ReadOnlyModelViewSet):
     serializer_class = DoctorDetailSerializer
     permission_classes = [AllowAny]
     queryset = Doctor.objects.select_related("base_user").all()
-    
-    
+
+
 class PatientReadOnlyViewView(ReadOnlyModelViewSet):
     serializer_class = PatientDetailSerializer
     permission_classes = [AllowAny]

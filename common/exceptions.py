@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def _extract_messages(error_data):
     if isinstance(error_data, (str, Exception)):
         return [str(error_data)]
-    
+
     if isinstance(error_data, dict):
         messages = []
         for field, value in error_data.items():
@@ -20,7 +20,7 @@ def _extract_messages(error_data):
                 for msg in _extract_messages(value):
                     messages.append(f"{field}: {msg}")
         return messages
-    
+
     if isinstance(error_data, (list, tuple)):
         messages = []
         for item in error_data:
@@ -47,7 +47,7 @@ def exception_handler(exc, context):
             extra={
                 "path": getattr(request, "path", None),
                 "method": getattr(request, "method", None),
-            }
+            },
         )
         if settings.DEBUG:
             raise
@@ -55,9 +55,11 @@ def exception_handler(exc, context):
         messages = _extract_messages(response.data)
         return Response(
             _format_response(messages, response.status_code),
-            status=response.status_code
+            status=response.status_code,
         )
     return Response(
-        _format_response(["Internal server error"], status.HTTP_500_INTERNAL_SERVER_ERROR),
-        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        _format_response(
+            ["Internal server error"], status.HTTP_500_INTERNAL_SERVER_ERROR
+        ),
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )

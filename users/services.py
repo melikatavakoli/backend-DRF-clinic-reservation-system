@@ -1,5 +1,3 @@
-
-
 def pick_serializer_fields(serializer_class, fields):
     class Serializer(serializer_class):
         def __init__(self, *args, **kwargs):
@@ -8,4 +6,5 @@ def pick_serializer_fields(serializer_class, fields):
             existing = set(self.fields)
             for field in existing - allowed:
                 self.fields.pop(field)
+
     return Serializer
