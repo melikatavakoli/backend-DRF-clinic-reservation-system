@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from users.models import Doctor, Patient
 from common.serializers import GenericModelSerializer
 from users.models import Doctor
+from users.services import pick_serializer_fields
 
 User = get_user_model()
 
@@ -27,11 +28,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BaseProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(source="base_user")   
     role = None
 
     def create(self, validated_data):
-        user_data = validated_data.pop("user")
+        user_data = validated_data.pop("base_user")
         password = user_data.pop("password", None)
         user = User.objects.create_user(
             role=self.role,
@@ -45,7 +46,7 @@ class BaseProfileSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
+        user_data = validated_data.pop("base_user", None)
         if user_data:
             user = instance.user
             for attr, value in user_data.items():
@@ -121,3 +122,29 @@ class UserAvatarSerializer(serializers.ModelSerializer):
             instance.avatar = avatar
             instance.save(update_fields=["avatar"])
         return instance
+
+
+class DoctorDetailSerializer(GenericModelSerializer):
+    UserInfoSerializer = pick_serializer_fields(UserSerializer,("first_name", "last_name", "full_name", "mobile", "email", "birth_date",),)
+    user = UserInfoSerializer(source="base_user", read_only=True)
+    info=DoctorSerializer(source="*", read_only=True)
+    
+    class Meta:
+        model = Doctor
+        fields = (
+            "user",
+            "info",
+            )
+        
+
+class PatientDetailSerializer(GenericModelSerializer):
+    UserInfoSerializer = pick_serializer_fields(UserSerializer,("first_name", "last_name", "full_name", "mobile", "email", "birth_date",),)
+    user = UserInfoSerializer(source="*", read_only=True)
+    info=PatientSerializer(source="*", read_only=True)
+    
+    class Meta:
+        model = Patient
+        fields = (
+            "user",
+            "info",
+            )

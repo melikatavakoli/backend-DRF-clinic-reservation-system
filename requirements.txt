@@ -50,3 +50,5 @@ drf-standardized-errors==0.15.0
 channels-redis>=4.2.0
 channels>=4.1.0
 django-currentuser==0.8.0
+
+django-extensions

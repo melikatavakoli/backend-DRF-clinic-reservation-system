@@ -27,7 +27,7 @@ class Doctor(GenericModel):
         db_table = 'doctors'
 
     def __str__(self) -> str:
-        return self.user.full_name or None            
+        return self.base_user.full_name or None            
 
 
 class Patient(GenericModel):
@@ -52,5 +52,5 @@ class Patient(GenericModel):
 
     def __str__(self):
         if self.user:
-            return self.user.full_name or "none"
+            return self.base_user.full_name or "none"
         return "none"
