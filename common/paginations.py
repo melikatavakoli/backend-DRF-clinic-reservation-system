@@ -10,8 +10,8 @@ def _positive_int(integer_string):
 
 
 class CustomLimitOffsetPagination(LimitOffsetPagination):
-    limit_query_param = 'limit'
-    offset_query_param = 'offset'
+    limit_query_param = "limit"
+    offset_query_param = "offset"
 
     def paginate_queryset(self, queryset, request, view=None):
         self.limit = self.get_limit(request)
@@ -22,7 +22,7 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         self.request = request
         if self.count == 0 or self.offset >= self.count:
             return []
-        return list(queryset[self.offset:self.offset + self.limit])
+        return list(queryset[self.offset : self.offset + self.limit])
 
     def get_offset(self, request):
         try:
@@ -42,15 +42,15 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         pages_count = (
             0 if self.count == 0 else (self.count + self.limit - 1) // self.limit
         )
-        current_page = (
-            0 if self.count == 0 else (self.offset // self.limit) + 1
-        )
+        current_page = 0 if self.count == 0 else (self.offset // self.limit) + 1
 
-        return Response({
-            'pages_count': pages_count,
-            'items_per_page': self.limit,
-            'current_page_items_count': len(data),
-            'current_page': current_page,
-            'total_items': self.count,
-            'items': data,
-        })
+        return Response(
+            {
+                "pages_count": pages_count,
+                "items_per_page": self.limit,
+                "current_page_items_count": len(data),
+                "current_page": current_page,
+                "total_items": self.count,
+                "items": data,
+            }
+        )

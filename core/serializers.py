@@ -34,7 +34,9 @@ class UserListSerializer(GenericModelSerializer):
 class RegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=11)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
-    re_password = serializers.CharField(write_only=True,  required=False, allow_blank=True)
+    re_password = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
     code = serializers.CharField(max_length=6, required=False, allow_blank=True)
     first_name = serializers.CharField(max_length=100, required=False)
     last_name = serializers.CharField(max_length=100, required=False)
@@ -44,37 +46,30 @@ class RegisterSerializer(serializers.Serializer):
         code = data.get("code")
         password = data.get("password")
         re_password = data.get("re_password")
-        
+
         mobile_validator = RegexValidator(
-            regex=r'^09\d{9}$',
-            message="فرمت شماره موبایل نادرست است."
+            regex=r"^09\d{9}$", message="فرمت شماره موبایل نادرست است."
         )
 
         try:
             mobile_validator(mobile)
         except DjangoValidationError:
-            raise serializers.ValidationError({
-                "mobile": "فرمت شماره موبایل نادرست است."
-            })
-            
+            raise serializers.ValidationError(
+                {"mobile": "فرمت شماره موبایل نادرست است."}
+            )
+
         if password != re_password:
             raise serializers.ValidationError("رمز عبور مطابقت ندارد.")
         if User.objects.filter(mobile=mobile).exists():
             raise serializers.ValidationError("این موبایل قبلاً ثبت شده است.")
-        
+
         if code:
             redis_conn = get_redis_connection("default")
-            stored_code = redis_conn.get(
-                f"verification_code:{mobile}"
-            )
+            stored_code = redis_conn.get(f"verification_code:{mobile}")
             if not stored_code:
-                raise serializers.ValidationError({
-                    "code": "کد تأیید یافت نشد."
-                })
+                raise serializers.ValidationError({"code": "کد تأیید یافت نشد."})
             if stored_code.decode("utf-8") != code:
-                raise serializers.ValidationError({
-                    "code": "کد تأیید اشتباه است."
-                })
+                raise serializers.ValidationError({"code": "کد تأیید اشتباه است."})
         return data
 
     @transaction.atomic
@@ -140,7 +135,7 @@ class LoginOtpSerializer(serializers.Serializer):
     def validate(self, data):
         mobile = data.get("mobile")
         code = data.get("code")
-        
+
         try:
             user = User.objects.get(mobile=mobile)
         except User.DoesNotExist:
@@ -163,7 +158,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         mobile = data.get("mobile")
         password = data.get("password")
-        
+
         try:
             user = BaseUser.objects.get(email=mobile)
         except BaseUser.DoesNotExist:

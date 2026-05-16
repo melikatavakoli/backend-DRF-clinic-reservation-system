@@ -1,12 +1,15 @@
 from django.db import models
 
+
 class GenderChoices(models.TextChoices):
     MALE = "M", "Male"
     FEMALE = "F", "Female"
 
+
 class MaritalStatus(models.TextChoices):
     SINGLE = "S", "Single"
     MARRIED = "M", "Married"
+
 
 class EducationStatus(models.TextChoices):
     DIPLOMA = "D", "Diploma"
@@ -15,10 +18,12 @@ class EducationStatus(models.TextChoices):
     MASTER = "M", "Master's Degree"
     PHD = "PHD", "PhD"
 
+
 class DoctorType(models.TextChoices):
     VISIT = "V", "Consultation"
     SERVICES = "S", "Medical Services"
-    
+
+
 class BloodTypeChoices(models.TextChoices):
     A_POSITIVE = "A+", "A Positive"
     A_NEGATIVE = "A-", "A Negative"

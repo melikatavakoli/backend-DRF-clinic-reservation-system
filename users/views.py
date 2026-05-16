@@ -1,45 +1,44 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, mixins
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from users.models import Doctor, Patient
 from users.serializers import (
+    DoctorDetailSerializer,
     DoctorSerializer,
+    PatientDetailSerializer,
     PatientSerializer,
     UserAvatarSerializer,
 )
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 
-class DoctorViewSet(viewsets.ModelViewSet):
-    queryset = Doctor.objects.select_related("user").all()
+class DoctorViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = Doctor.objects.select_related("base_user").all()
     serializer_class = DoctorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        specialty = self.request.query_params.get("specialty")
-        if specialty:
-            queryset = queryset.filter(specialty__icontains=specialty)
-        return queryset
-    
-    
-class PatientViewSet(viewsets.ModelViewSet):
-    queryset = Patient.objects.select_related("user").all()
+
+class PatientViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = Patient.objects.select_related("base_user").all()
     serializer_class = PatientSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        mobile = self.request.query_params.get("mobile")
-        if mobile:
-            queryset = queryset.filter(user__mobile__icontains=mobile)
-        return queryset
+    permission_classes = [AllowAny]
 
 
 class UserAvatarUpdateView(generics.UpdateAPIView):
     serializer_class = UserAvatarSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self):
@@ -49,8 +48,20 @@ class UserAvatarUpdateView(generics.UpdateAPIView):
         serializer = self.get_serializer(
             request.user,
             data={"avatar": request.data.get("avatar")},
-            partial=True
+            partial=True,
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": "Avatar updated successfully"})
+
+
+class DoctorReadOnlyViewView(ReadOnlyModelViewSet):
+    serializer_class = DoctorDetailSerializer
+    permission_classes = [AllowAny]
+    queryset = Doctor.objects.select_related("base_user").all()
+
+
+class PatientReadOnlyViewView(ReadOnlyModelViewSet):
+    serializer_class = PatientDetailSerializer
+    permission_classes = [AllowAny]
+    queryset = Patient.objects.select_related("base_user").all()

@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db import models
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -18,7 +17,16 @@ class GenericModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = None
-        fields = ( "id","_created_by","created_by","_updated_by","updated_by","created_at","updated_at","can_delete",)
+        fields = (
+            "id",
+            "_created_by",
+            "created_by",
+            "_updated_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+            "can_delete",
+        )
         read_only_fields = fields
 
     def get_created_by(self, obj):
@@ -50,7 +58,7 @@ class GenericModelSerializer(serializers.ModelSerializer):
 
     def get_updated_at(self, obj):
         return getattr(obj, "updated_at", None)
-    
+
     @extend_schema_field(serializers.BooleanField)
     def get_can_delete(self, obj):
         return getattr(obj, "can_delete", False)

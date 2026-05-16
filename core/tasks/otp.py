@@ -18,13 +18,16 @@ It is not functional because an API token must be purchased/activated
 from Kavenegar before it can be used.
 """
 
+
 def send_sms(receptor, variables, pattern_code):
-    url = f"https://api.kavenegar.com/v1/{settings.KAVENEGAR_API_KEY}/verify/lookup.json"
+    url = (
+        f"https://api.kavenegar.com/v1/{settings.KAVENEGAR_API_KEY}/verify/lookup.json"
+    )
     payload = {
-        'receptor': receptor,
-        'template': pattern_code,
-        'token': variables.get('verification-code'),
-        'type': 'sms'
+        "receptor": receptor,
+        "template": pattern_code,
+        "token": variables.get("verification-code"),
+        "type": "sms",
     }
     logger.info(f"Sending SMS to {receptor} with payload: {payload}")
     try:
@@ -33,7 +36,7 @@ def send_sms(receptor, variables, pattern_code):
         logger.info(f"Response text: {response.text}")
         if response.status_code == 200:
             result = response.json()
-            if result.get('return', {}).get('status') == 200:
+            if result.get("return", {}).get("status") == 200:
                 logger.info(f"SMS sent successfully to {receptor}")
             else:
                 logger.error(f"API error: {result}")
@@ -49,10 +52,8 @@ def send_sms(receptor, variables, pattern_code):
 def send_verification_sms(mobile, code):
     logger.info(f"Starting to send SMS to {mobile} with code {code}")
     try:
-        variables = {
-            "verification-code": str(code)
-        }
-        response = send_sms(mobile, variables, 'login-otp')
+        variables = {"verification-code": str(code)}
+        response = send_sms(mobile, variables, "login-otp")
         if response and response.status_code == 200:
             logger.info(f"Verification SMS sent to {mobile}")
         else:
@@ -66,10 +67,8 @@ def send_verification_sms(mobile, code):
 def send_registry_sms(mobile, code):
     logger.info(f"Starting to send SMS to {mobile} with code {code}")
     try:
-        variables = {
-            "verification-code": str(code)
-        }
-        response = send_sms(mobile, variables, 'appt-otpcode')
+        variables = {"verification-code": str(code)}
+        response = send_sms(mobile, variables, "appt-otpcode")
         if response and response.status_code == 200:
             logger.info(f"Verification SMS sent to {mobile}")
         else:

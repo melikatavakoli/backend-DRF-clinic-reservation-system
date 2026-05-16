@@ -1,20 +1,21 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-
 from celery.schedules import crontab
-from dotenv import load_dotenv
 from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-env = {**dotenv_values(BASE_DIR / ".env"), **dotenv_values(BASE_DIR / ".env.local")}
+env = {
+    **dotenv_values(BASE_DIR / ".env"),
+    **dotenv_values(BASE_DIR / ".env.local"),
+}
 for key, value in env.items():
     if value is not None:
         os.environ[key] = value
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or 'unsafe-default-key-for-dev-only'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or "unsafe-default-key-for-dev-only"
 
 
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
@@ -45,13 +46,10 @@ THIRD_PARTY_APPS = [
     "debug_toolbar",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "django_extensions",
 ]
 
-LOCAL_APPS = [
-    "address",
-    "core",
-    "users"
-]
+LOCAL_APPS = ["address", "core", "users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -156,7 +154,7 @@ SPECTACULAR_SETTINGS = {
         "deepLinking": True,
     },
     "COMPONENT_SPLIT_REQUEST": True,
-    'SCHEMA_PATH_PREFIX': '/api/v1',
+    "SCHEMA_PATH_PREFIX": "/api/v1",
     "ENUM_NAME_OVERRIDES": {},
     "TAG_SORTING": "alpha",
     "SWAGGER_UI_DIST": "SIDECAR",
@@ -216,7 +214,8 @@ CHANNEL_LAYERS = {
 }
 
 CELERY_BROKER_URL = os.getenv(
-    "CELERY_BROKER_URL", f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1"
+    "CELERY_BROKER_URL",
+    f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1",
 )
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
 CELERY_ACCEPT_CONTENT = ["json"]
