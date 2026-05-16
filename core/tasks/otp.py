@@ -20,7 +20,9 @@ from Kavenegar before it can be used.
 
 
 def send_sms(receptor, variables, pattern_code):
-    url = f"https://api.kavenegar.com/v1/{settings.KAVENEGAR_API_KEY}/verify/lookup.json"
+    url = (
+        f"https://api.kavenegar.com/v1/{settings.KAVENEGAR_API_KEY}/verify/lookup.json"
+    )
     payload = {
         "receptor": receptor,
         "template": pattern_code,
@@ -39,9 +41,7 @@ def send_sms(receptor, variables, pattern_code):
             else:
                 logger.error(f"API error: {result}")
         else:
-            logger.error(
-                f"Error sending SMS: {response.status_code} - {response.text}"
-            )
+            logger.error(f"Error sending SMS: {response.status_code} - {response.text}")
         return response
     except requests.exceptions.RequestException as e:
         logger.error(f"Network error in send_sms: {e}", exc_info=True)

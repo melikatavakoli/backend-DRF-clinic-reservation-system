@@ -71,9 +71,7 @@ class SendOTPView(APIView):
 class LoginOTPView(APIView):
     @extend_schema(request=LoginOtpSerializer, responses=TokenPairSerializer)
     def post(self, request):
-        serializer = LoginOtpSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = LoginOtpSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         refresh = RefreshToken.for_user(user)
@@ -89,9 +87,7 @@ class LoginOTPView(APIView):
 class LoginView(APIView):
     @extend_schema(request=LoginSerializer, responses=TokenPairSerializer)
     def post(self, request):
-        serializer = LoginSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = LoginSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         refresh = RefreshToken.for_user(user)
@@ -125,15 +121,11 @@ class LogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(
-            {"detail": "logout successful"}, status=status.HTTP_200_OK
-        )
+        return Response({"detail": "logout successful"}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(APIView):
-    @extend_schema(
-        request=ResetPasswordSerializer, responses=TokenPairSerializer
-    )
+    @extend_schema(request=ResetPasswordSerializer, responses=TokenPairSerializer)
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

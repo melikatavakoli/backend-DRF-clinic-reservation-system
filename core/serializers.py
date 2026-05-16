@@ -33,15 +33,11 @@ class UserListSerializer(GenericModelSerializer):
 
 class RegisterSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=11)
-    password = serializers.CharField(
-        write_only=True, required=False, allow_blank=True
-    )
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     re_password = serializers.CharField(
         write_only=True, required=False, allow_blank=True
     )
-    code = serializers.CharField(
-        max_length=6, required=False, allow_blank=True
-    )
+    code = serializers.CharField(max_length=6, required=False, allow_blank=True)
     first_name = serializers.CharField(max_length=100, required=False)
     last_name = serializers.CharField(max_length=100, required=False)
 
@@ -71,13 +67,9 @@ class RegisterSerializer(serializers.Serializer):
             redis_conn = get_redis_connection("default")
             stored_code = redis_conn.get(f"verification_code:{mobile}")
             if not stored_code:
-                raise serializers.ValidationError(
-                    {"code": "کد تأیید یافت نشد."}
-                )
+                raise serializers.ValidationError({"code": "کد تأیید یافت نشد."})
             if stored_code.decode("utf-8") != code:
-                raise serializers.ValidationError(
-                    {"code": "کد تأیید اشتباه است."}
-                )
+                raise serializers.ValidationError({"code": "کد تأیید اشتباه است."})
         return data
 
     @transaction.atomic
@@ -99,16 +91,10 @@ class RegisterSerializer(serializers.Serializer):
 
 class SendOTPSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=11)
-    mode = serializers.ChoiceField(
-        choices=["register", "login", "forget_password"]
-    )
+    mode = serializers.ChoiceField(choices=["register", "login", "forget_password"])
 
     def validate_mobile(self, value):
-        if (
-            not value.isdigit()
-            or len(value) != 11
-            or not value.startswith("09")
-        ):
+        if not value.isdigit() or len(value) != 11 or not value.startswith("09"):
             raise serializers.ValidationError("شماره موبایل معتبر نیست.")
         return value
 
@@ -117,9 +103,7 @@ class SendOTPSerializer(serializers.Serializer):
         mode = attrs["mode"]
         user_exists = User.objects.filter(mobile=mobile).exists()
         if mode == "register" and user_exists:
-            raise serializers.ValidationError(
-                "این شماره قبلاً ثبت‌نام شده است."
-            )
+            raise serializers.ValidationError("این شماره قبلاً ثبت‌نام شده است.")
         if mode in ["login", "forget_password"] and not user_exists:
             raise serializers.ValidationError("این شماره یافت نشد.")
         return attrs
@@ -178,9 +162,7 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = BaseUser.objects.get(email=mobile)
         except BaseUser.DoesNotExist:
-            raise serializers.ValidationError(
-                "کاربری با این موبایل یافت نشد."
-            )
+            raise serializers.ValidationError("کاربری با این موبایل یافت نشد.")
         if user.status != StatusType.ACTIVE:
             raise serializers.ValidationError("حساب کاربری فعال نیست.")
         if not user.check_password(password):
@@ -239,9 +221,7 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data["password"])
         user.save()
         redis_conn = get_redis_connection("default")
-        redis_conn.delete(
-            f"verification_code:{self.validated_data['mobile']}"
-        )
+        redis_conn.delete(f"verification_code:{self.validated_data['mobile']}")
         return user
 
 

@@ -22,35 +22,27 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         self.request = request
         if self.count == 0 or self.offset >= self.count:
             return []
-        return list(queryset[self.offset:self.offset+self.limit])
+        return list(queryset[self.offset : self.offset + self.limit])
 
     def get_offset(self, request):
         try:
-            return _positive_int(
-                request.query_params[self.offset_query_param]
-            )
+            return _positive_int(request.query_params[self.offset_query_param])
         except (KeyError, ValueError):
             return 0
 
     def get_limit(self, request):
         if self.limit_query_param:
             try:
-                return _positive_int(
-                    request.query_params[self.limit_query_param]
-                )
+                return _positive_int(request.query_params[self.limit_query_param])
             except (KeyError, ValueError):
                 pass
         return self.default_limit
 
     def get_paginated_response(self, data):
         pages_count = (
-            0
-            if self.count == 0
-            else (self.count + self.limit - 1) // self.limit
+            0 if self.count == 0 else (self.count + self.limit - 1) // self.limit
         )
-        current_page = (
-            0 if self.count == 0 else (self.offset // self.limit) + 1
-        )
+        current_page = 0 if self.count == 0 else (self.offset // self.limit) + 1
 
         return Response(
             {

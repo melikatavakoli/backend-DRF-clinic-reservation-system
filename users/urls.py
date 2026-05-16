@@ -15,12 +15,8 @@ router = DefaultRouter()
 router.register(r"doctors", DoctorViewSet, basename="doctor")
 router.register(r"patients", PatientViewSet, basename="patient")
 
-router.register(
-    r"detail-patient", PatientReadOnlyViewView, basename="detail_patient"
-)
-router.register(
-    r"detail-doctor", DoctorReadOnlyViewView, basename="detail_doctor"
-)
+router.register(r"detail-patient", PatientReadOnlyViewView, basename="detail_patient")
+router.register(r"detail-doctor", DoctorReadOnlyViewView, basename="detail_doctor")
 
 urlpatterns = router.urls
 

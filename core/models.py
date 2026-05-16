@@ -26,12 +26,8 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     )
     description = models.TextField(blank=True, default="")
     password_updated_at = models.DateTimeField(blank=True, null=True)
-    state = models.ForeignKey(
-        State, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    city = models.ForeignKey(
-        City, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    state = models.ForeignKey(State, on_delete=models.SET_NULL, null=True, blank=True)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True)
     country = models.ForeignKey(
         Country, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -49,9 +45,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     objects = UserManager(alive_only=True)
     all_objects = UserManager(alive_only=None)
     deleted_objects = UserManager(alive_only=False)
-    avatar = models.ImageField(
-        upload_to="upload_to_by_date", null=True, blank=True
-    )
+    avatar = models.ImageField(upload_to="upload_to_by_date", null=True, blank=True)
     national_code = models.CharField(max_length=10, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
 

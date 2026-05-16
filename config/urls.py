@@ -12,9 +12,7 @@ urlpatterns = [
     path("adminpanel/", admin.site.urls),
     path(
         "api/v1/schema/",
-        SpectacularAPIView.as_view(
-            authentication_classes=[], permission_classes=[]
-        ),
+        SpectacularAPIView.as_view(authentication_classes=[], permission_classes=[]),
         name="schema",
     ),
     path(
@@ -37,9 +35,7 @@ urlpatterns = [
     ),
     path(
         "swagger/output.json",
-        DownloadSchemaView.as_view(
-            authentication_classes=[], permission_classes=[]
-        ),
+        DownloadSchemaView.as_view(authentication_classes=[], permission_classes=[]),
         name="schema-json",
     ),
     path("api/v1/address/", include("address.urls")),

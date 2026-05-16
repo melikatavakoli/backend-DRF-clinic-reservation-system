@@ -19,9 +19,7 @@ class Country(models.Model):
     created_at = models.DateTimeField(
         verbose_name="created at", default=timezone.now, null=False
     )
-    updated_at = models.DateTimeField(
-        verbose_name="updated at", auto_now=True
-    )
+    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -73,9 +71,7 @@ class State(models.Model):
     created_at = models.DateTimeField(
         verbose_name="created at", default=timezone.now, null=False
     )
-    updated_at = models.DateTimeField(
-        verbose_name="updated at", auto_now=True
-    )
+    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -125,9 +121,7 @@ class City(models.Model):
     created_at = models.DateTimeField(
         verbose_name="created at", default=timezone.now, null=False
     )
-    updated_at = models.DateTimeField(
-        verbose_name="updated at", auto_now=True
-    )
+    updated_at = models.DateTimeField(verbose_name="updated at", auto_now=True)
     _is_deleted = models.BooleanField(default=False, db_index=True)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)

@@ -55,9 +55,7 @@ class BaseAdmin(AuditlogHistoryAdminMixin, ImportExportModelAdmin):
             for obj in queryset
             if getattr(obj, "_is_deleted", False) and obj.restore()
         )
-        self.message_user(
-            request, f"{restored} record(s) restored.", messages.SUCCESS
-        )
+        self.message_user(request, f"{restored} record(s) restored.", messages.SUCCESS)
 
     def get_actions(self, request):
         actions = super().get_actions(request)

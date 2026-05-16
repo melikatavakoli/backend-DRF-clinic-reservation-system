@@ -12,6 +12,4 @@ class BaseFilter(django_filters.FilterSet):
         )
 
     def filter_text(self, queryset, field_name, value):
-        return queryset.filter(
-            **{f"{field_name}__icontains": value}
-        ).distinct()
+        return queryset.filter(**{f"{field_name}__icontains": value}).distinct()

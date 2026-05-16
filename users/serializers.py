@@ -33,9 +33,7 @@ class BaseProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop("base_user")
         password = user_data.pop("password", None)
-        user = User.objects.create_user(
-            role=self.role, password=password, **user_data
-        )
+        user = User.objects.create_user(role=self.role, password=password, **user_data)
         instance = self.Meta.model.objects.create(user=user, **validated_data)
         return instance
 

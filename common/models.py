@@ -40,9 +40,7 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
     _created_at = models.DateTimeField(
         verbose_name=_("created at"), default=timezone.now
     )
-    _updated_at = models.DateTimeField(
-        verbose_name=_("updated at"), auto_now=True
-    )
+    _updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     _is_deleted = models.BooleanField(default=False)
     _deleted_at = models.DateTimeField(null=True, blank=True)
     objects = SoftDeleteManager(alive_only=True)
@@ -63,9 +61,7 @@ class GenericModel(models.Model, metaclass=AuditLogModelBase):
                         setattr(instance, key, value)
                     instance.save(update_fields=list(defaults.keys()))
                 return instance, False, restored
-            instance, created = cls.objects.get_or_create(
-                defaults=defaults, **kwargs
-            )
+            instance, created = cls.objects.get_or_create(defaults=defaults, **kwargs)
             return instance, created, False
 
     @classmethod
