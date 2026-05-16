@@ -1,16 +1,17 @@
 from address.models import City, Country, State
 from common.format import calculate_age, common_datetime_str
-from common.managers import SoftDeleteManager, UserManager
-from common.models import GenericModel
+from common.managers import UserManager
 from django.db import models
 from core.types import RoleType, StatusType
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
+from uuid import uuid4
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField("unique id", primary_key=True, unique=True, null=False, default=uuid4, editable=False)
     username = None
-    mobile = models.CharField(max_length=11, unique=True)
+    mobile = models.CharField(max_length=15, unique=True)
     email = models.EmailField(blank=True, default="")
     birth_date = models.DateField(blank=True, null=True)
     role = models.CharField(max_length=1, choices=RoleType.choices, default=RoleType.PATIENT)
@@ -28,15 +29,17 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     status = models.CharField(max_length=20, choices=StatusType.choices, default=StatusType.ACTIVE)
     _is_deleted = models.BooleanField(default=False)
     _deleted_at = models.DateTimeField(null=True, blank=True)
-    password_updated_at = models.DateTimeField(null=True, blank=True,auto_now_add=True,)
     objects = UserManager(alive_only=True)
     all_objects = UserManager(alive_only=None)
     deleted_objects = UserManager(alive_only=False)
+    avatar = models.ImageField(upload_to="upload_to_by_date", null=True, blank=True)
+    national_code = models.CharField(max_length=10, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
 
     def delete(self, using=None, keep_parents=False):
         self._is_deleted = True
         self._deleted_at = timezone.now()
-        self.save(using=using)
+        self.save(update_fields=["_is_deleted", "_deleted_at"])
 
     def hard_delete(self, using=None, keep_parents=False):
         super().delete(using=using, keep_parents=keep_parents)
@@ -53,15 +56,8 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         verbose_name = "base_user"
         verbose_name_plural = "base_users"
         db_table = "base_user"
-        indexes = (
-            models.Index(fields=['id'], name='user_id_idx'),
-            models.Index(fields=['mobile'], name='user_mobile_idx'),
-            models.Index(fields=['first_name'], name='user_first_name_idx'),
-            models.Index(fields=['last_name'], name='user_last_name_idx'),
-        )
         
     def save(self, *args, **kwargs):
-        self.full_name = f"{self.first_name} {self.last_name}".strip()
         super().save(*args, **kwargs)
 
     @property
