@@ -14,5 +14,6 @@ exclude=
     migrations
     manage.py,
     __init__.py,
+    .\urls.py
 
 ignore =

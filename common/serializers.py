@@ -5,7 +5,7 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class GenericModelSerializer(serializers.ModelSerializer):
+class BaseUserSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     created_by = serializers.SerializerMethodField()
     updated_by = serializers.SerializerMethodField()

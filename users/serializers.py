@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Doctor, Patient
-from common.serializers import GenericModelSerializer
+from common.serializers import BaseUserSerializer
 from .services import pick_serializer_fields
 
 User = get_user_model()
@@ -33,7 +33,9 @@ class BaseProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop("base_user")
         password = user_data.pop("password", None)
-        user = User.objects.create_user(role=self.role, password=password, **user_data)
+        user = User.objects.create_user(
+            role=self.role, password=password, **user_data
+        )
         instance = self.Meta.model.objects.create(user=user, **validated_data)
         return instance
 
@@ -119,7 +121,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         return instance
 
 
-class DoctorDetailSerializer(GenericModelSerializer):
+class DoctorDetailSerializer(BaseUserSerializer):
     UserInfoSerializer = pick_serializer_fields(
         UserSerializer,
         (
@@ -142,7 +144,7 @@ class DoctorDetailSerializer(GenericModelSerializer):
         )
 
 
-class PatientDetailSerializer(GenericModelSerializer):
+class PatientDetailSerializer(BaseUserSerializer):
     UserInfoSerializer = pick_serializer_fields(
         UserSerializer,
         (

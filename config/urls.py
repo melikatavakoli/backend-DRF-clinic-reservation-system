@@ -41,4 +41,8 @@ urlpatterns = [
     path("api/v1/address/", include("address.urls")),
     path("api/v1/core/", include("core.urls")),
     path("api/v1/users/", include("users.urls")),
+    path("api/v1/section/", include("section.urls")),
+    path("api/v1/medicals/", include("medicals.urls")),
+    path("api/v1/shift/", include("shift.urls")),
+    path("api/v1/appointment/", include("appointment.urls")),
 ]
