@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from common.models import GenericModel
 from core.models import BaseUser
-from users.type import (
+from users.choices import (
     BloodTypeChoices,
     DoctorType,
     EducationStatus,

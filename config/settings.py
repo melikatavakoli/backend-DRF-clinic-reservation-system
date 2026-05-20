@@ -49,7 +49,15 @@ THIRD_PARTY_APPS = [
     "django_extensions",
 ]
 
-LOCAL_APPS = ["address", "core", "users"]
+LOCAL_APPS = [
+    "address",
+    "core",
+    "users",
+    "section",
+    "medicals",
+    "shift",
+    "appointment",
+    ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -129,7 +137,7 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],
-    # "EXCEPTION_HANDLER": "common.exceptions.exception_handler",
+    "EXCEPTION_HANDLER": "common.exceptions.exception_handler",
 }
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "en-us")

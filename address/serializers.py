@@ -1,31 +1,31 @@
 from address.models import City, Country, State
-from common.serializers import GenericModelSerializer
+from common.serializers import BaseUserSerializer
 
 
-class CountrySerializer(GenericModelSerializer):
+class CountrySerializer(BaseUserSerializer):
     class Meta:
         model = Country
-        fields = GenericModelSerializer.Meta.fields + ("label",)
+        fields = BaseUserSerializer.Meta.fields + ("label",)
 
 
-class StateSerializer(GenericModelSerializer):
+class StateSerializer(BaseUserSerializer):
     country_detail = CountrySerializer(source="country", read_only=True)
 
     class Meta:
         model = State
-        fields = GenericModelSerializer.Meta.fields + (
+        fields = BaseUserSerializer.Meta.fields + (
             "label",
             "country",
             "country_detail",
         )
 
 
-class CitySerializer(GenericModelSerializer):
+class CitySerializer(BaseUserSerializer):
     state_detail = StateSerializer(source="state", read_only=True)
 
     class Meta:
         model = City
-        fields = GenericModelSerializer.Meta.fields + (
+        fields = BaseUserSerializer.Meta.fields + (
             "label",
             "state",
             "state_detail",

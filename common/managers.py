@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from django.utils import timezone
-from core.types import RoleType
+from core.choices import RoleType
 
 
 class SoftDeleteQuerySet(models.QuerySet):
