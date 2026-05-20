@@ -19,7 +19,7 @@ from core.serializers import (
     SendOTPSerializer,
     UserListSerializer,
 )
-from core.types import RoleType, StatusType
+from core.choices import RoleType, StatusType
 
 User = get_user_model()
 

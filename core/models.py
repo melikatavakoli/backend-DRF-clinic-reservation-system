@@ -2,7 +2,7 @@ from address.models import City, Country, State
 from common.format import calculate_age, common_datetime_str
 from common.managers import UserManager
 from django.db import models
-from core.types import RoleType, StatusType
+from core.choices import RoleType, StatusType
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils import timezone
 from uuid import uuid4

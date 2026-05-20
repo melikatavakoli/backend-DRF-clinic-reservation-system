@@ -6,10 +6,10 @@ from django.db import transaction
 from django.utils import timezone
 from django_redis import get_redis_connection
 from rest_framework import serializers
-from common.serializers import GenericModelSerializer
+from common.serializers import BaseUserSerializer
 from core.models import BaseUser
 from core.tasks.otp import send_registry_sms, send_verification_sms
-from core.types import RoleType, StatusType
+from core.choices import RoleType, StatusType
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import RegexValidator
@@ -18,12 +18,12 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class UserListSerializer(GenericModelSerializer):
+class UserListSerializer(BaseUserSerializer):
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = BaseUser
-        fields = GenericModelSerializer.Meta.fields + (
+        fields = BaseUserSerializer.Meta.fields + (
             "mobile",
             "full_name",
             "role",
@@ -225,12 +225,12 @@ class ResetPasswordSerializer(serializers.Serializer):
         return user
 
 
-class UserListSerializer(GenericModelSerializer):
+class UserListSerializer(BaseUserSerializer):
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = BaseUser
-        fields = GenericModelSerializer.Meta.fields + (
+        fields = BaseUserSerializer.Meta.fields + (
             "mobile",
             "full_name",
             "role",
