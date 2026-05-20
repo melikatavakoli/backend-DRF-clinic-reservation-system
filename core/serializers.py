@@ -160,7 +160,7 @@ class LoginSerializer(serializers.Serializer):
         password = data.get("password")
 
         try:
-            user = BaseUser.objects.get(email=mobile)
+            user = BaseUser.objects.get(mobile=mobile)
         except BaseUser.DoesNotExist:
             raise serializers.ValidationError("کاربری با این موبایل یافت نشد.")
         if user.status != StatusType.ACTIVE:
