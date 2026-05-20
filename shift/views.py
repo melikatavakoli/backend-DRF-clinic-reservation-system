@@ -4,6 +4,7 @@ from shift.models import WeeklySchedule
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.db.models import Q
+from django.db import transaction
 
 from shift.serializers import ( WeeklyScheduleSerializer, DoctorExceptionDateSerializer )
 from users.models import Doctor

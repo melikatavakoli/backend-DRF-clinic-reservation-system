@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from shift import views
+from . import views
 
 router = DefaultRouter()
 
@@ -13,17 +13,17 @@ urlpatterns = [
         name="my-weekly-schedule",
     ),
     path(
-        "shift-details/<uuid:staff_id>/",
+        "shift-details/<uuid:doctor_id>/",
         views.StaffWeeklyScheduleDetailAPIView.as_view(),
         name="staff-schedule-detail",
     ),
     path(
-        "schedule/<uuid:staff_id>/",
+        "schedule/<uuid:doctor_id>/",
         views.DoctorWeeklyScheduleCreateAPIView.as_view(),
         name="doctor-shift-create",
     ),
     path(
-        "schedule-update/<uuid:staff_id>/<uuid:id>/",
+        "schedule-update/<uuid:doctor_id>/<uuid:id>/",
         views.DoctorWeeklyScheduleUpdateAPIView.as_view(),
         name="doctor-shift-update",
     ),

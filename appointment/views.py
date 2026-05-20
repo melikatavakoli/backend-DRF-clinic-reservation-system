@@ -100,7 +100,7 @@ class AppointmentsMonthRangeAPIView(APIView):
             if not doctors.exists():
                 return Response({"detail": "پزشک یافت نشد"}, status=404)
         doctors = list(
-            doctors.select_related("doctor", "doctor__base_user").prefetch_related(
+            doctors.select_related("base_user", "base_user").prefetch_related(
                 "schedules_dr",
                 "exceptions",
             )
@@ -732,11 +732,13 @@ class PatientAppointmentListAPIView(APIView):
 
 
 class NextAppointmentView(APIView):
-    
     def get(self, request):
         user = request.user
-        patient_obj = user.patient.first()
-        if not patient_obj:
+        if not user.is_authenticated:
+            return Response({"detail": "احراز هویت انجام نشده است."}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            patient_obj = Patient.objects.get(base_user=user)
+        except Patient.DoesNotExist:
             return Response(
                 {"detail": "پروفایل بیمار برای این کاربر یافت نشد."},
                 status=status.HTTP_404_NOT_FOUND
