@@ -225,13 +225,14 @@ class ResetPasswordSerializer(serializers.Serializer):
         return user
 
 
-class UserListSerializer(BaseUserSerializer):
+class UserListSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = BaseUser
-        fields = BaseUserSerializer.Meta.fields + (
+        fields = [
+            'id',
             "mobile",
             "full_name",
             "role",
-        )
+        ]

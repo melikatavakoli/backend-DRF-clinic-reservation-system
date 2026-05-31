@@ -4,41 +4,64 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 
+from common.views import BaseModelViewSet
 from shift.models import ExceptionDate, WeeklySchedule
 from shift.serializers import ( ExceptionDateSerializer, WeeklyScheduleSerializer )
 from users.models import Doctor
 
 
-class WeeklyScheduleViewSet(viewsets.ModelViewSet):
+class WeeklyScheduleViewSet(BaseModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = WeeklyScheduleSerializer
     
     def get_queryset(self):
         user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return WeeklySchedule.objects.all()
         if hasattr(user, 'doctor_profile'):
             return WeeklySchedule.objects.filter(doctor=user.doctor_profile)
         return WeeklySchedule.objects.none()
     
     def perform_create(self, serializer):
         user = self.request.user
+        doctor = None
         if hasattr(user, 'doctor_profile'):
-            serializer.save(doctor=user.doctor_profile)
+            doctor = user.doctor_profile
+        elif user.is_staff and 'doctor' in self.request.data:
+            doctor_id = self.request.data['doctor']
+            doctor = Doctor.objects.get(id=doctor_id)
+        else:
+            raise PermissionError("فقط پزشکان می‌توانند شیفت ثبت کنند")
+        super().perform_create(serializer)
+        serializer.instance.doctor = doctor
+        serializer.instance.save()
 
 
-class ExceptionDateViewSet(viewsets.ModelViewSet):
+class ExceptionDateViewSet(BaseModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = ExceptionDateSerializer
     
     def get_queryset(self):
         user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return ExceptionDate.objects.all()
         if hasattr(user, 'doctor_profile'):
             return ExceptionDate.objects.filter(doctor=user.doctor_profile)
         return ExceptionDate.objects.none()
     
     def perform_create(self, serializer):
         user = self.request.user
+        doctor = None
         if hasattr(user, 'doctor_profile'):
-            serializer.save(doctor=user.doctor_profile)
+            doctor = user.doctor_profile
+        elif user.is_staff and 'doctor' in self.request.data:
+            doctor_id = self.request.data['doctor']
+            doctor = Doctor.objects.get(id=doctor_id)
+        else:
+            raise PermissionError("فقط پزشکان می‌توانند تاریخ ثبت کنند")
+        super().perform_create(serializer)
+        serializer.instance.doctor = doctor
+        serializer.instance.save()
     
     @action(detail=False, methods=['get'], url_path='upcoming')
     def upcoming_exceptions(self, request):
@@ -61,7 +84,7 @@ class DoctorScheduleViewSet(viewsets.GenericViewSet):
         exceptions = ExceptionDate.objects.filter(doctor=doctor)
         data = {
             'doctor_id': doctor.id,
-            'doctor_name': doctor.get_full_name(),
+            'doctor_name': doctor.base_user.full_name,
             'weekly_schedule': WeeklyScheduleSerializer(weekly_schedule, many=True).data,
             'exceptions': ExceptionDateSerializer(exceptions, many=True).data
         }

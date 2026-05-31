@@ -179,10 +179,8 @@ class UserListView(ListAPIView):
     queryset = BaseUser.objects.all()
     pagination_class = CustomLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ("mobile",)
+    filterset_fields = ("mobile", "role",)
     search_fields = ("first_name", "last_name", "mobile")
-    ordering = ("_created_at",)
-    ordering_fields = ("first_name", "_created_at")
 
     @extend_schema(
         responses=UserListSerializer(many=True),

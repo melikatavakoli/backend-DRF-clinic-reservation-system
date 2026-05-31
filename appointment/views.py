@@ -35,7 +35,7 @@ from .serializers import (
     PatientOwnAppointmentSerializer,
     AppointmentListSerializer, 
 )
-from .types import AppointmentStatus, AppointmentType
+from .types import AppointmentStatus
 
 
 class AppointmentViewSet(viewsets.ModelViewSet):
@@ -44,35 +44,40 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = Appointment.objects.all()
-
-        if hasattr(user, 'doctor_profile') and user.doctor_profile:
+        
+        if user.is_staff or user.is_superuser:
+            queryset = queryset.all()
+        elif hasattr(user, 'doctor_profile') and user.doctor_profile:
             queryset = queryset.filter(doctor=user.doctor_profile)
         elif hasattr(user, 'patient_profile') and user.patient_profile:
             queryset = queryset.filter(patient=user.patient_profile)
         elif hasattr(user, 'receptionist_profile'):
             queryset = queryset.all()
         else:
-            queryset = queryset.none()
+            queryset = queryset.filter(
+                Q(patient__base_user=user) | Q(doctor__base_user=user)
+            )
 
-        serializer = AppointmentFilterSerializer(data=self.request.query_params)
-        if serializer.is_valid():
-            filters = serializer.validated_data
-            if filters.get('patient_id'):
-                queryset = queryset.filter(patient_id=filters['patient_id'])
-            if filters.get('doctor_id'):
-                queryset = queryset.filter(doctor_id=filters['doctor_id'])
-            if filters.get('status'):
-                queryset = queryset.filter(status=filters['status'])
-            if filters.get('type'):
-                queryset = queryset.filter(type=filters['type'])
-            if filters.get('date_from'):
-                queryset = queryset.filter(appointment_date__gte=filters['date_from'])
-            if filters.get('date_to'):
-                queryset = queryset.filter(appointment_date__lte=filters['date_to'])
-            if filters.get('is_paid') is not None:
-                queryset = queryset.filter(is_paid=filters['is_paid'])
-            if filters.get('is_urgent') is not None:
-                queryset = queryset.filter(is_urgent=filters['is_urgent'])
+        query_params = self.request.query_params
+        
+        if query_params.get('patient_id'):
+            queryset = queryset.filter(patient_id=query_params['patient_id'])
+        if query_params.get('doctor_id'):
+            queryset = queryset.filter(doctor_id=query_params['doctor_id'])
+        if query_params.get('status'):
+            queryset = queryset.filter(status=query_params['status'])
+        if query_params.get('type'):
+            queryset = queryset.filter(type=query_params['type'])
+        if query_params.get('date_from'):
+            queryset = queryset.filter(appointment_date__gte=query_params['date_from'])
+        if query_params.get('date_to'):
+            queryset = queryset.filter(appointment_date__lte=query_params['date_to'])
+        if query_params.get('is_paid') is not None:
+            is_paid = query_params['is_paid'].lower() == 'true'
+            queryset = queryset.filter(is_paid=is_paid)
+        if query_params.get('is_urgent') is not None:
+            is_urgent = query_params['is_urgent'].lower() == 'true'
+            queryset = queryset.filter(is_urgent=is_urgent)
         
         return queryset.select_related(
             'patient', 'doctor', 'medical_service', 'section'
@@ -93,7 +98,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def my_appointments(self, request):
         """دریافت نوبت‌های کاربر جاری"""
         user = request.user
-        if hasattr(user, 'patient_profile'):
+        if user.is_staff or user.is_superuser:
+            appointments = Appointment.objects.all()
+        elif hasattr(user, 'patient_profile'):
             appointments = Appointment.objects.filter(patient=user.patient_profile)
         elif hasattr(user, 'doctor_profile'):
             appointments = Appointment.objects.filter(doctor=user.doctor_profile)
@@ -102,10 +109,10 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         today = timezone.now().date()
         upcoming = appointments.filter(
             appointment_date__gte=today,
-            status__in=[AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED]
+            status__in=[AppointmentStatus.pending, AppointmentStatus.in_progress]
         )
         past = appointments.filter(
-            Q(appointment_date__lt=today) | Q(status=AppointmentStatus.COMPLETED)
+            Q(appointment_date__lt=today) | Q(status=AppointmentStatus.done)
         )
         return Response({
             'upcoming': AppointmentListSerializer(upcoming, many=True).data,
@@ -113,63 +120,96 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             'total': appointments.count()
         })
     
-    @action(detail=False, methods=['get'], url_path='available-slots')
-    def available_slots(self, request):
+    @action(detail=False, methods=['get'], url_path='available-slots/(?P<doctor_id>[^/.]+)')
+    def available_slots(self, request, doctor_id=None):
         """دریافت زمان‌های خالی پزشک"""
-        serializer = AvailableSlotSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        doctor_id = serializer.validated_data['doctor_id']
-        date = serializer.validated_data['date']
+        date_str = request.query_params.get('date')
+
+        if not date_str:
+            return Response(
+                {"error": "پارامتر date الزامی است"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from datetime import datetime
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response(
+                {"error": "فرمت تاریخ باید YYYY-MM-DD باشد"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         doctor = get_object_or_404(Doctor, id=doctor_id)
+
         weekday = date.weekday()
+
         weekly_schedule = WeeklySchedule.objects.filter(
             doctor=doctor,
             weekday=weekday,
             active=True
         ).first()
+        
         if not weekly_schedule:
             return Response({
                 "message": "پزشک در این روز کاری ندارد",
                 "slots": []
             })
+
         booked_appointments = Appointment.objects.filter(
             doctor=doctor,
             appointment_date=date,
-            status__in=[AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.CHECKED_IN]
+            status__in=[AppointmentStatus.pending, AppointmentStatus.done, AppointmentStatus.in_progress]
         ).values_list('appointment_start_time', flat=True)
+
         exception = ExceptionDate.objects.filter(doctor=doctor, date=date).first()
+        
         if exception and not exception.is_available:
             return Response({
                 "message": "پزشک در این تاریخ مرخصی دارد",
                 "slots": []
             })
+
         start_time = exception.start_time if exception and exception.start_time else weekly_schedule.start_time
         end_time = exception.end_time if exception and exception.end_time else weekly_schedule.end_time
         slot_length = weekly_schedule.slot_length or 20
+
+        from datetime import datetime, timedelta
         available_slots = []
         current_time = datetime.combine(date, start_time)
         end_datetime = datetime.combine(date, end_time)
+        
         while current_time + timedelta(minutes=slot_length) <= end_datetime:
             slot_start = current_time.time()
             slot_end = (current_time + timedelta(minutes=slot_length)).time()
+            
             if slot_start not in booked_appointments:
                 available_slots.append({
                     'start_time': slot_start.strftime('%H:%M'),
                     'end_time': slot_end.strftime('%H:%M'),
                     'is_available': True
                 })
+            
             current_time += timedelta(minutes=slot_length)
+
         return Response({
             'doctor_id': doctor.id,
             'doctor_name': doctor.get_full_name(),
-            'date': date,
+            'date': date_str,
+            'day_of_week': weekday,
+            'working_hours': {
+                'start': start_time.strftime('%H:%M') if start_time else None,
+                'end': end_time.strftime('%H:%M') if end_time else None
+            },
+            'slot_length': slot_length,
+            'total_slots': len(available_slots),
             'slots': available_slots
         })
     
     @action(detail=False, methods=['post'], url_path='book')
     def book_appointment(self, request):
         """رزرو نوبت جدید توسط بیمار"""
-        if not hasattr(request.user, 'patient_profile'):
+        if not (hasattr(request.user, 'patient_profile') or request.user.is_staff or request.user.is_superuser):
             return Response(
                 {"error": "فقط بیماران می‌توانند نوبت رزرو کنند"},
                 status=status.HTTP_403_FORBIDDEN
@@ -181,15 +221,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         appointment = serializer.save(patient=request.user.patient_profile)
         if appointment.final_amount > 0:
-            payment_result = process_appointment_payment(
-                appointment_id=appointment.id,
-                amount=appointment.final_amount,
-                payment_method='online',
-                user=request.user
-            )
             return Response({
                 'appointment': AppointmentDetailSerializer(appointment).data,
-                'payment_url': payment_result.get('payment_url'),
                 'message': 'لطفاً برای تکمیل نوبت، پرداخت را انجام دهید'
             }, status=status.HTTP_201_CREATED)
     
@@ -199,6 +232,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         appointment = self.get_object()
         user = request.user
         has_access = (
+            user.is_staff or user.is_superuser or
             (hasattr(user, 'patient_profile') and appointment.patient == user.patient_profile) or
             (hasattr(user, 'doctor_profile') and appointment.doctor == user.doctor_profile) or
             hasattr(user, 'receptionist_profile')
@@ -236,7 +270,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             doctor=appointment.doctor,
             appointment_date=new_date,
             appointment_start_time=new_time,
-            status__in=[AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED]
+            status__in=[AppointmentStatus.pending, AppointmentStatus.done]
         ).exclude(id=appointment.id)
         if overlapping.exists():
             return Response(
@@ -245,10 +279,9 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             )
         appointment.appointment_date = new_date
         appointment.appointment_start_time = new_time
-        appointment.status = AppointmentStatus.RESCHEDULED
+        appointment.status = AppointmentStatus.moved
         appointment.save()
         appointment.blocks.all().delete()
-        self.create_appointment_blocks(appointment)
         return Response({
             'message': 'زمان نوبت با موفقیت تغییر کرد',
             'appointment': AppointmentDetailSerializer(appointment).data
@@ -258,7 +291,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     def check_in(self, request, pk=None):
         """ثبت مراجعه بیمار (برای منشی/پزشک)"""
         appointment = self.get_object()
-        if appointment.status != AppointmentStatus.CONFIRMED:
+        if appointment.status != AppointmentStatus.done:
             return Response(
                 {"error": "فقط نوبت‌های تایید شده قابلیت مراجعه دارند"},
                 status=status.HTTP_400_BAD_REQUEST
@@ -294,50 +327,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             'appointment': AppointmentDetailSerializer(appointment).data
         })
     
-    @action(detail=True, methods=['post'], url_path='payment')
-    def process_payment(self, request, pk=None):
-        """پرداخت هزینه نوبت"""
-        appointment = self.get_object()
-        if appointment.is_paid:
-            return Response(
-                {"error": "هزینه این نوبت قبلاً پرداخت شده است"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        payment_method = request.data.get('payment_method', 'online')
-        payment_result = process_appointment_payment(
-            appointment_id=appointment.id,
-            amount=appointment.final_amount,
-            payment_method=payment_method,
-            user=request.user
-        )
-        return Response(payment_result)
-    
-    @action(detail=False, methods=['get'], url_path='calendar')
-    def doctor_calendar(self, request):
-        """تقویم نوبت‌های پزشک"""
-        doctor_id = request.query_params.get('doctor_id')
-        year = int(request.query_params.get('year', timezone.now().year))
-        month = int(request.query_params.get('month', timezone.now().month))
-        if not doctor_id:
-            return Response({"error": "doctor_id الزامی است"}, status=400)
-        appointments = Appointment.objects.filter(
-            doctor_id=doctor_id,
-            appointment_date__year=year,
-            appointment_date__month=month
-        )
-        calendar_data = {}
-        for appointment in appointments:
-            day = appointment.appointment_date.day
-            if day not in calendar_data:
-                calendar_data[day] = []
-            calendar_data[day].append({
-                'id': appointment.id,
-                'time': appointment.appointment_start_time.strftime('%H:%M'),
-                'patient': appointment.patient.get_full_name(),
-                'status': appointment.status
-            })
-        return Response(calendar_data)
-    
     @action(detail=True, methods=['post'], url_path='send-reminder')
     def send_reminder(self, request, pk=None):
         """ارسال یادآوری برای بیمار"""
@@ -353,152 +342,23 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         return Response({'message': f'یادآوری از طریق {reminder_type} ارسال شد'})
 
 
-class AppointmentsMonthRangeAPIView(APIView):
-    def get(self, request):
-        start_date_str = request.query_params.get("start_date")
-        end_date_str = request.query_params.get("end_date")
-        doctor_id = request.query_params.get("doctor_id")
-        if not start_date_str or not end_date_str:
-            return Response({"detail": "پارامترهای start_date و end_date الزامی هستند"}, status=400)
-        try:
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
-        except ValueError:
-            return Response({"detail": "فرمت تاریخ باید YYYY-MM-DD باشد"}, status=400)
-        if start_date > end_date:
-            return Response({"detail": "start_date نمی‌تواند بعد از end_date باشد"}, status=400)
-        doctors = Doctor.objects.all()
-        if doctor_id:
-            doctors = doctors.filter(id=doctor_id)
-            if not doctors.exists():
-                return Response({"detail": "پزشک یافت نشد"}, status=404)
-        doctors = list(
-            doctors.select_related("base_user", "base_user").prefetch_related(
-                "schedules_dr",
-                "exceptions",
-            )
-        )
-        doctor_schedule_map = {}
-        doctor_exception_map = {}
-        for doctor in doctors:
-            schedule_by_weekday = {}
-            for schedule in doctor.schedules_dr.all():
-                if schedule.weekday is None:
-                    continue
-                schedule_by_weekday.setdefault(schedule.weekday, schedule)
-            doctor_schedule_map[doctor.id] = schedule_by_weekday
-            exception_by_date = {}
-            for exception in doctor.exceptions.all():
-                if exception.date is None:
-                    continue
-                exception_by_date.setdefault(exception.date, exception)
-            doctor_exception_map[doctor.id] = exception_by_date
-        occupied_slots_map = defaultdict(set)
-        occupied_slots_qs = Appointment.objects.filter(
-            appointment_date__range=[start_date, end_date],
-            appointment_date__isnull=False,
-            status__in=["pending", "checked_in", "in_progress"],
-            appointment_start_time__isnull=False,
-        )
-        if doctor_id:
-            occupied_slots_qs = occupied_slots_qs.filter(doctor_id=doctor_id)
-        for doc_id, appointment_date, appointment_start_time in occupied_slots_qs.values_list(
-            "doctor_id",
-            "appointment_date",
-            "appointment_start_time",
-        ):
-            if not doc_id or not appointment_date or not appointment_start_time:
-                continue
-            occupied_slots_map[(doc_id, appointment_date)].add(
-                appointment_start_time.strftime("%H:%M")
-            )
-        appt_qs = Appointment.objects.filter(
-            appointment_date__range=[start_date, end_date],
-            appointment_date__isnull=False
-        )
-        if doctor_id:
-            appt_qs = appt_qs.filter(doctor_id=doctor_id)
-        pending_qs = (
-            appt_qs
-            .filter(status="pending")
-            .annotate(day=TruncDate('appointment_date'))
-            .values('day')
-            .annotate(count=Count('id'))
-        )
-        done_qs = (
-            appt_qs
-            .filter(status="done")
-            .annotate(day=TruncDate('appointment_date'))
-            .values('day')
-            .annotate(count=Count('id'))
-        )
-        stats_map = {}
-        for item in pending_qs:
-            day = item['day'].isoformat()
-            stats_map.setdefault(day, {
-                "pending": 0,
-                "done": 0
-            })
-            stats_map[day]["pending"] = item["count"]
-        for item in done_qs:
-            day = item['day'].isoformat()
-            stats_map.setdefault(day, {
-                "pending": 0,
-                "done": 0
-            })
-            stats_map[day]["done"] = item["count"]
-        date_range = []
-        current_date = start_date
-        while current_date <= end_date:
-            date_range.append(current_date)
-            current_date += timedelta(days=1)
-        result_by_date = []
-        for target_date in date_range:
-            date_key = target_date.isoformat()
-            day_stats = stats_map.get(date_key, {
-                "pending": 0,
-                "done": 0
-            })
-            day_item = {
-                "date": str(target_date),
-                "total_pending": day_stats["pending"],
-                "total_done": day_stats["done"],
-                "doctors": []
-            }
-            for doctor in doctors:
-                model_weekday = (target_date.weekday() + 2) % 7
-                schedule = doctor_schedule_map.get(doctor.id, {}).get(model_weekday)
-                if not schedule:
-                    continue
-                exception = doctor_exception_map.get(doctor.id, {}).get(target_date)
-                if exception and exception.is_available is False:
-                    continue
-                start_time = exception.start_time if exception and exception.start_time else schedule.start_time
-                end_time = exception.end_time if exception and exception.end_time else schedule.end_time
-                if not start_time or not end_time:
-                    continue
-                all_slots = generate_time_slots(start_time, end_time, schedule.slot_length or 20)
-                if not all_slots:
-                    continue
-                occupied_str = occupied_slots_map.get((doctor.id, target_date), set())
-                free_slots = [s for s in all_slots if s not in occupied_str]
-                if free_slots:
-                    day_item["doctors"].append({
-                        "doctor_id": doctor.id,
-                        "doctor_name": str(doctor.base_user) if doctor.base_user else f"دکتر {doctor.id}",
-                        "specialty": doctor.specialty or "نامشخص",
-                        "total_free": len(free_slots)
-                    })
-            if day_item["doctors"]:
-                result_by_date.append(day_item)
-        return Response(result_by_date)
-
-
 class NextAppointmentView(APIView):
     def get(self, request):
         user = request.user
         if not user.is_authenticated:
             return Response({"detail": "احراز هویت انجام نشده است."}, status=status.HTTP_401_UNAUTHORIZED)
+        if user.is_staff or user.is_superuser:
+            appointments = Appointment.objects.filter(
+                is_pass=False,
+                next_appointment_date__isnull=False
+            ).exclude(
+                status="canceled"
+            ).order_by(
+                "next_appointment_date",
+                "next_appointment_time"
+            )
+            serializer = NextAppointmentSerializer(appointments, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         try:
             patient_obj = Patient.objects.get(base_user=user)
         except Patient.DoesNotExist:
