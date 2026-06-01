@@ -5,21 +5,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from common.paginations import CustomLimitOffsetPagination
+from common.views import BaseModelViewSet
 from medicals.filters import MedicalServicesFilter
 from medicals.models import (
-    MedicalServices, Brand, Line, 
-    Materials, Category, Size
+    MedicalServices,  Line, Category
     )
 from medicals.serializers import (
-    MedicalServiceSerializer, BrandSerializer,
-    LineSerializer, MaterialsSerializer, 
-    CategorySerializer, SizeSerializer
+    MedicalServiceSerializer,
+    LineSerializer, 
+    CategorySerializer
     )
 
 User = get_user_model()
 
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(BaseModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CategorySerializer
     queryset = Category.objects.select_related("section")
@@ -32,19 +32,21 @@ class CategoryViewSet(ModelViewSet):
         return super().get_queryset().filter(is_active=True)
 
     def perform_create(self, serializer):
+        super().perform_create(serializer)
         if 'is_active' not in self.request.data:
             serializer.save(is_active=False)
         else:
             serializer.save()
 
     def perform_update(self, serializer):
+        super().perform_update(serializer)
         if 'is_active' not in self.request.data:
             serializer.save(is_active=False)
         else:
             serializer.save()
 
 
-class MedicalServicesViewSet(ModelViewSet):
+class MedicalServicesViewSet(BaseModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = MedicalServiceSerializer
     pagination_class = CustomLimitOffsetPagination
@@ -54,9 +56,7 @@ class MedicalServicesViewSet(ModelViewSet):
     search_fields = ('title',)
 
     queryset = MedicalServices.objects.select_related(
-        "materials",
         "line",
-        "brand",
         "category",
     ).order_by("title", "id")
     
@@ -64,52 +64,24 @@ class MedicalServicesViewSet(ModelViewSet):
         return super().get_queryset().filter(is_active=True, category__is_active=True)
 
     def perform_create(self, serializer):
+        super().perform_create(serializer)
         if 'is_active' not in self.request.data:
             serializer.save(is_active=False)
         else:
             serializer.save()
 
     def perform_update(self, serializer):
+        super().perform_update(serializer)
         if 'is_active' not in self.request.data:
             serializer.save(is_active=False)
         else:
             serializer.save()
             
 
-class LineViewSet(ModelViewSet):
+class LineViewSet(BaseModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = LineSerializer
     queryset = Line.objects.all()
-    pagination_class = CustomLimitOffsetPagination
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ('title',)
-    search_fields = ('title',)
-
-
-class MaterialsViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class = MaterialsSerializer
-    queryset = Materials.objects.all()
-    pagination_class = CustomLimitOffsetPagination
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ('title',)
-    search_fields = ('title',)
-
-
-class BrandViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class = BrandSerializer
-    queryset = Brand.objects.all()
-    pagination_class = CustomLimitOffsetPagination
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ('title',)
-    search_fields = ('title',)
-
-
-class SizeViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class = SizeSerializer
-    queryset = Size.objects.all()
     pagination_class = CustomLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
     filterset_fields = ('title',)

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -5,6 +7,8 @@ from django.utils import timezone
 from django.db.models import Max
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import datetime, timedelta, time
 
 from appointment.types import AppointmentType, AppointmentStatus
 from common.models import GenericModel
@@ -125,22 +129,44 @@ class Appointment(GenericModel):
                 else:
                     new_num = 1
                 self.title = f"APT{today}{str(new_num).zfill(5)}"
+        
         self.final_amount = self.fee - self.discount_amount
-        if self.appointment_start_time and self.duration_minutes:
-            from datetime import datetime, timedelta
-            start = datetime.combine(timezone.now().date(), self.appointment_start_time)
-            end = start + timedelta(minutes=self.duration_minutes)
-            self.appointment_end_time = end.time()
+        
+        # محاسبه زمان پایان
+        if self.appointment_date and self.appointment_start_time and self.duration_minutes:
+            # تبدیل appointment_date به date اگر string است
+            appointment_date = self.appointment_date
+            if isinstance(appointment_date, str):
+                appointment_date = datetime.strptime(appointment_date, '%Y-%m-%d').date()
+            
+            # تبدیل appointment_start_time به time اگر string است
+            start_time = self.appointment_start_time
+            if isinstance(start_time, str):
+                # پاک کردن Z و میلی‌ثانیه
+                time_str = start_time.replace('Z', '')
+                if '.' in time_str:
+                    time_str = time_str.split('.')[0]
+                time_parts = time_str.split(':')
+                start_time = time(
+                    hour=int(time_parts[0]),
+                    minute=int(time_parts[1]),
+                    second=int(time_parts[2]) if len(time_parts) > 2 else 0
+                )
+            
+            start_datetime = datetime.combine(appointment_date, start_time)
+            end_datetime = start_datetime + timedelta(minutes=self.duration_minutes)
+            self.appointment_end_time = end_datetime.time()
+        
         self.clean()
         super().save(*args, **kwargs)
-
+        
     def clean(self):
         if self.doctor and self.appointment_date and self.appointment_start_time:
             overlapping = Appointment.objects.filter(
                 doctor=self.doctor,
                 appointment_date=self.appointment_date,
                 appointment_start_time=self.appointment_start_time,
-                status__in=[AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.CHECKED_IN]
+                status__in=[AppointmentStatus.pending, AppointmentStatus.in_clinic, AppointmentStatus.in_progress]
             ).exclude(id=self.id)
             
             if overlapping.exists():
@@ -148,7 +174,7 @@ class Appointment(GenericModel):
 
     def cancel(self, reason=None):
         """لغو نوبت"""
-        self.status = AppointmentStatus.CANCELLED
+        self.status = AppointmentStatus.cancelled
         self.cancellation_reason = reason
         self.cancelled_at = timezone.now()
         self.save()
@@ -157,28 +183,39 @@ class Appointment(GenericModel):
 
     def check_in(self):
         """ثبت مراجعه بیمار"""
-        self.status = AppointmentStatus.CHECKED_IN
+        self.status = AppointmentStatus.in_progress
         self.check_in_time = timezone.now()
         self.save()
 
     def start_visit(self):
         """شروع ویزیت"""
-        self.status = AppointmentStatus.IN_PROGRESS
+        self.status = AppointmentStatus.in_progress
         self.save()
 
     def complete(self):
         """اتمام ویزیت"""
-        self.status = AppointmentStatus.COMPLETED
+        self.status = AppointmentStatus.done
         self.check_out_time = timezone.now()
         self.save()
 
     def is_upcoming(self):
         """آیا نوبت آینده است؟"""
-        appointment_datetime = timezone.datetime.combine(
+        if not self.appointment_date or not self.appointment_start_time:
+            return False
+        
+        # ترکیب تاریخ و زمان
+        appointment_datetime = datetime.combine(
             self.appointment_date, 
             self.appointment_start_time
         )
-        return appointment_datetime > timezone.now() and self.status == AppointmentStatus.CONFIRMED
+        
+        # اطمینان از timezone-aware بودن
+        if timezone.is_naive(appointment_datetime):
+            appointment_datetime = timezone.make_aware(appointment_datetime)
+        
+        # مقایسه با زمان فعلی
+        now = timezone.now()
+        return appointment_datetime > now and self.status != AppointmentStatus.done
 
     def is_today(self):
         """آیا نوبت امروز است؟"""

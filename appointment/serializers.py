@@ -30,11 +30,11 @@ class AppointmentReminderSerializer(serializers.ModelSerializer):
         
 
 class AppointmentListSerializer(serializers.ModelSerializer):
-    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
-    doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)
+    patient_name = serializers.CharField(source='patient.base_user.full_name', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.base_user.full_name', read_only=True)
     doctor_specialty = serializers.CharField(source='doctor.specialty', read_only=True, allow_null=True)
-    medical_service_name = serializers.CharField(source='medical_service.name', read_only=True, allow_null=True)
-    section_name = serializers.CharField(source='section.name', read_only=True, allow_null=True)
+    medical_service_name = serializers.CharField(source='medical_service.title', read_only=True, allow_null=True)
+    section_name = serializers.CharField(source='section.title', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
     
@@ -91,7 +91,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
             doctor=data['doctor'],
             appointment_date=appointment_date,
             appointment_start_time=appointment_time,
-            status__in=[AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED, AppointmentStatus.CHECKED_IN]
+            status__in=[AppointmentStatus.pending, AppointmentStatus.in_progress, AppointmentStatus.in_clinic]
         )
         
         if overlapping.exists():
@@ -133,7 +133,7 @@ class AppointmentCreateSerializer(serializers.ModelSerializer):
             appointment = Appointment.objects.create(
                 **validated_data,
                 final_amount=final_amount,
-                status=AppointmentStatus.PENDING,
+                status=AppointmentStatus.pending,
                 total_duration=duration_minutes
             )
 
@@ -166,7 +166,7 @@ class AppointmentUpdateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, data):
-        if 'status' in data and data['status'] == AppointmentStatus.CANCELLED:
+        if 'status' in data and data['status'] == AppointmentStatus.cancelled:
             if not data.get('cancellation_reason'):
                 raise serializers.ValidationError({"cancellation_reason": "لطفاً دلیل لغو نوبت را وارد کنید"})
         return data
@@ -177,7 +177,7 @@ class AppointmentStatusUpdateSerializer(serializers.Serializer):
     cancellation_reason = serializers.CharField(required=False, allow_blank=True)
     
     def validate_status(self, value):
-        if value == AppointmentStatus.CANCELLED:
+        if value == AppointmentStatus.cancelled:
             if not self.initial_data.get('cancellation_reason'):
                 raise serializers.ValidationError("برای لغو نوبت، دلیل لغو الزامی است")
         return value
@@ -266,11 +266,18 @@ class AvailableTimeSlotSerializer(serializers.Serializer):
     
 
 class AppointmentFilterSerializer(serializers.Serializer):
-    patient_id = serializers.IntegerField(required=False)
-    doctor_id = serializers.IntegerField(required=False)
+    patient_id = serializers.UUIDField(required=False)
+    doctor_id = serializers.UUIDField(required=False)
     status = serializers.ChoiceField(choices=AppointmentStatus.choices, required=False)
     type = serializers.ChoiceField(choices=AppointmentType.choices, required=False)
     date_from = serializers.DateField(required=False)
     date_to = serializers.DateField(required=False)
     is_paid = serializers.BooleanField(required=False)
     is_urgent = serializers.BooleanField(required=False)
+    
+    def validate(self, data):
+        filtered_data = {}
+        for key, value in data.items():
+            if value is not None:
+                filtered_data[key] = value
+        return filtered_data

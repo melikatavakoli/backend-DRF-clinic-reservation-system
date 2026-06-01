@@ -9,7 +9,7 @@ class WeeklyScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = WeeklySchedule
         fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id']
     
     def validate(self, data):
         if data.get('start_time') and data.get('end_time'):

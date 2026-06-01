@@ -36,7 +36,7 @@ class BaseProfileSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             role=self.role, password=password, **user_data
         )
-        instance = self.Meta.model.objects.create(user=user, **validated_data)
+        instance = self.Meta.model.objects.create(base_user=user, **validated_data)
         return instance
 
     def update(self, instance, validated_data):
@@ -156,7 +156,7 @@ class PatientDetailSerializer(BaseUserSerializer):
             "birth_date",
         ),
     )
-    user = UserInfoSerializer(source="*", read_only=True)
+    user = UserInfoSerializer(source="base_user", read_only=True)
     info = PatientSerializer(source="*", read_only=True)
 
     class Meta:

@@ -103,6 +103,6 @@ class Patient(GenericModel):
         ordering = ("-_updated_at",)
 
     def __str__(self):
-        if self.user:
+        if self.base_user:
             return self.base_user.full_name or "none"
         return "none"
