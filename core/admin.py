@@ -9,7 +9,6 @@ User = get_user_model()
 
 
 class UserResource(resources.ModelResource):
-
     class Meta:
         model = User
         fields = (
@@ -28,7 +27,6 @@ class UserResource(resources.ModelResource):
 
 @admin.register(BaseUser)
 class BaseUserAdmin(BaseAdmin, BaseUserAdmin):
-
     model = BaseUser
     resource_class = UserResource
 

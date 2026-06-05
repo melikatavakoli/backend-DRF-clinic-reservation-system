@@ -6,7 +6,7 @@ from users.models import Doctor
 
 
 class SectionRoom(GenericModel):
-    title = models.CharField(max_length=400,null=True,blank=True)
+    title = models.CharField(max_length=400, null=True, blank=True)
     doctor = models.ForeignKey(
         Doctor,
         related_name="section_staff",
@@ -19,8 +19,8 @@ class SectionRoom(GenericModel):
     class Meta:
         verbose_name = "section"
         verbose_name_plural = "section"
-        ordering = ('-_updated_at',)
-        db_table = 'section'
+        ordering = ("-_updated_at",)
+        db_table = "section"
 
     def __str__(self) -> str:
         return self.title or "None"

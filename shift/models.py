@@ -13,15 +13,11 @@ class WeeklySchedule(GenericModel):
         null=True,
         blank=True,
     )
-    weekday = models.IntegerField(
-        choices=WEEKDAYS.choices, null=True, blank=True
-    )
+    weekday = models.IntegerField(choices=WEEKDAYS.choices, null=True, blank=True)
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
     active = models.BooleanField(default=True)
-    slot_length = models.PositiveIntegerField(
-        default=20, null=True, blank=True
-    )
+    slot_length = models.PositiveIntegerField(default=20, null=True, blank=True)
 
     class Meta:
         verbose_name = "weekly_schedule"

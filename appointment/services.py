@@ -14,8 +14,8 @@ class NullableTimeField(serializers.TimeField):
         if value in ("", None):
             return None
         return super().to_internal_value(value)
-    
-    
+
+
 def _normalize_optional_bool(value):
     if value in (None, ""):
         return None

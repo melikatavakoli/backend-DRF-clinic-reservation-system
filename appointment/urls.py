@@ -5,11 +5,15 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'appointment', views.AppointmentViewSet, basename='appointment')
+router.register(r"appointment", views.AppointmentViewSet, basename="appointment")
 
-app_name = 'calender_app'
+app_name = "calender_app"
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("next-appointment/", views.NextAppointmentView.as_view(), name="next_appointment"),
+    path(
+        "next-appointment/",
+        views.NextAppointmentView.as_view(),
+        name="next_appointment",
+    ),
 ]

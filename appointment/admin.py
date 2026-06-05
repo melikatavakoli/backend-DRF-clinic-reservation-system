@@ -48,9 +48,7 @@ class AppointmentAdmin(admin.ModelAdmin):
 
     date_hierarchy = "date"
 
-    readonly_fields = (
-        "title",
-    )
+    readonly_fields = ("title",)
 
     inlines = [AppointmentBlockInline]
 
