@@ -2,7 +2,6 @@ from rest_framework import viewsets
 
 
 class BaseModelViewSet(viewsets.ModelViewSet):
-
     def perform_create(self, serializer):
 
         if self.request.user.is_authenticated:

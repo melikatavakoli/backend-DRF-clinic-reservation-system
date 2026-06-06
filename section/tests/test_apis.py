@@ -7,7 +7,6 @@ from section.models import SectionRoom
 
 
 class SectionAPITests(APITestCase):
-
     def setUp(self):
         self.base_user = BaseUser.objects.create(
             mobile="09123456789",
@@ -26,8 +25,7 @@ class SectionAPITests(APITestCase):
         self.client.force_authenticate(user=self.base_user)
 
         self.section = SectionRoom.objects.create(
-            title="Neurology Room",
-            doctor=self.doctor
+            title="Neurology Room", doctor=self.doctor
         )
 
         self.list_url = reverse("section:section-list")
@@ -37,10 +35,7 @@ class SectionAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_section(self):
-        payload = {
-            "title": "Cardiology Room",
-            "doctor": self.doctor.id
-        }
+        payload = {"title": "Cardiology Room", "doctor": self.doctor.id}
 
         response = self.client.post(self.list_url, payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

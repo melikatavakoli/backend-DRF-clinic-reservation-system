@@ -5,10 +5,10 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'section', views.SectionRoomViewSet, basename='section')
+router.register(r"section", views.SectionRoomViewSet, basename="section")
 
-app_name = 'section'
+app_name = "section"
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

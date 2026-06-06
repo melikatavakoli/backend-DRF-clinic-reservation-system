@@ -4,16 +4,18 @@ from shift.models import WeeklySchedule, ExceptionDate
 
 
 class WeeklyScheduleSerializer(serializers.ModelSerializer):
-    weekday_display = serializers.CharField(source='get_weekday_display', read_only=True)
-    
+    weekday_display = serializers.CharField(
+        source="get_weekday_display", read_only=True
+    )
+
     class Meta:
         model = WeeklySchedule
-        fields = '__all__'
-        read_only_fields = ['id']
-    
+        fields = "__all__"
+        read_only_fields = ["id"]
+
     def validate(self, data):
-        if data.get('start_time') and data.get('end_time'):
-            if data['start_time'] >= data['end_time']:
+        if data.get("start_time") and data.get("end_time"):
+            if data["start_time"] >= data["end_time"]:
                 raise serializers.ValidationError(
                     {"end_time": "زمان پایان باید بعد از زمان شروع باشد"}
                 )
@@ -23,12 +25,12 @@ class WeeklyScheduleSerializer(serializers.ModelSerializer):
 class ExceptionDateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExceptionDate
-        fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
+        fields = "__all__"
+        read_only_fields = ["id", "created_at", "updated_at"]
+
     def validate(self, data):
-        if data.get('is_available') and data.get('start_time') and data.get('end_time'):
-            if data['start_time'] >= data['end_time']:
+        if data.get("is_available") and data.get("start_time") and data.get("end_time"):
+            if data["start_time"] >= data["end_time"]:
                 raise serializers.ValidationError(
                     {"end_time": "زمان پایان باید بعد از زمان شروع باشد"}
                 )

@@ -5,6 +5,7 @@ class AppointmentType(models.TextChoices):
     visit = "visit", "ویزیت"
     services = "services", "خدمات"
 
+
 class AppointmentStatus(models.TextChoices):
     cancelled = "cancelled", "لغو شده"
     moved = "moved", "جابجا شده"

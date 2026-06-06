@@ -3,17 +3,10 @@ from address.models import Country, State, City
 
 
 class AddressModelTests(TestCase):
-
     def setUp(self):
         self.country = Country.objects.create(label="Azerbaijan")
-        self.state = State.objects.create(
-            label="Baku",
-            country=self.country
-        )
-        self.city = City.objects.create(
-            label="Kesla",
-            state=self.state
-        )
+        self.state = State.objects.create(label="Baku", country=self.country)
+        self.city = City.objects.create(label="Kesla", state=self.state)
 
     def test_country_soft_delete(self):
         self.country.delete()

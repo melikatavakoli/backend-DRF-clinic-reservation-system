@@ -1,4 +1,3 @@
-from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from section.models import SectionRoom
@@ -7,7 +6,6 @@ from core.models import BaseUser
 
 
 class SectionAPITests(APITestCase):
-
     def setUp(self):
         self.user = BaseUser.objects.create_user(
             mobile="09123456789",
@@ -25,8 +23,7 @@ class SectionAPITests(APITestCase):
         )
 
         self.section = SectionRoom.objects.create(
-            title="Cardiology",
-            doctor=self.doctor
+            title="Cardiology", doctor=self.doctor
         )
 
         self.url = "/api/v1/section/section/"
@@ -36,10 +33,7 @@ class SectionAPITests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_section(self):
-        payload = {
-            "title": "Neurology",
-            "doctor": self.doctor.id
-        }
+        payload = {"title": "Neurology", "doctor": self.doctor.id}
 
         res = self.client.post(self.url, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)

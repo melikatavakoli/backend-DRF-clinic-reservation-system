@@ -19,7 +19,7 @@ from core.serializers import (
     SendOTPSerializer,
     UserListSerializer,
 )
-from core.choices import RoleType, StatusType
+from core.choices import RoleType
 
 User = get_user_model()
 
@@ -179,7 +179,10 @@ class UserListView(ListAPIView):
     queryset = BaseUser.objects.all()
     pagination_class = CustomLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ("mobile", "role",)
+    filterset_fields = (
+        "mobile",
+        "role",
+    )
     search_fields = ("first_name", "last_name", "mobile")
 
     @extend_schema(

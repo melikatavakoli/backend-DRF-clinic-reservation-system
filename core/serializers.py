@@ -10,25 +10,11 @@ from common.serializers import BaseUserSerializer
 from core.models import BaseUser
 from core.tasks.otp import send_registry_sms, send_verification_sms
 from core.choices import RoleType, StatusType
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import RegexValidator
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-
-
-class UserListSerializer(BaseUserSerializer):
-    full_name = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = BaseUser
-        fields = BaseUserSerializer.Meta.fields + (
-            "mobile",
-            "full_name",
-            "role",
-            "email",
-        )
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -230,9 +216,4 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseUser
-        fields = [
-            'id',
-            "mobile",
-            "full_name",
-            "role",
-        ]
+        fields = ["id", "mobile", "full_name", "role", "email"]

@@ -1,4 +1,3 @@
-from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,5 +14,5 @@ class SectionRoomViewSet(BaseModelViewSet):
     queryset = SectionRoom.objects.all()
     pagination_class = CustomLimitOffsetPagination
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
-    filterset_fields = ('title',)
-    search_fields = ('title',)
+    filterset_fields = ("title",)
+    search_fields = ("title",)
